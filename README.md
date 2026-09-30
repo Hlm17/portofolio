@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# hilmi.work
 
-## Getting Started
+Website pribadi **Muhammad Hilmi Rajwandhika** (Next.js 14 App Router) yang juga menjadi
+rumah produk **IngetDiWA** — bot pengingat & daftar tugas berbasis WhatsApp.
 
-First, run the development server:
+## Menjalankan
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev     # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Build produksi:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run build
+npm start
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Peta halaman
 
-## Learn More
+| Rute | Isi |
+|---|---|
+| `/` | Halaman profil + kartu produk IngetDiWA |
+| `/ingetdiwa` | Landing page produk IngetDiWA (fitur, cara kerja, harga, FAQ) |
+| `/ingetdiwa/langganan` | Checkout langganan Rp3.000 / 30 hari (terintegrasi Pakasir) |
+| `/ingetdiwa/langganan/sukses` | Instruksi setelah pembayaran |
+| `/ingetdiwa/privasi` | Kebijakan Privasi |
+| `/ingetdiwa/syarat` | Syarat & Ketentuan |
+| `POST /api/pakasir/create` | Proxy server-side ke Pakasir API v2 |
 
-To learn more about Next.js, take a look at the following resources:
+## Integrasi Pakasir
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Checkout di `/ingetdiwa/langganan` tidak menaruh kredensial di browser. Form mengirim
+nomor WhatsApp ke `/api/pakasir/create`, lalu route server yang memanggil
+`POST https://app.pakasir.com/api/v2/create-transaction/{slug}/{order_id}` dengan header
+`X-Api-Key` dan body `{ method: "payment_link", amount: 3000 }`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+`order_id` yang dipakai adalah `SUB-<nomor>-<YYYYMM>` — **format yang sama** dengan bot
+WAbot di server. Artinya webhook Pakasir yang sudah dikonfigurasi ke server bot otomatis
+mengaktifkan langganan, baik user membayar lewat chat bot maupun lewat website.
 
-## Deploy on Vercel
+### Environment variable (Vercel → Settings → Environment Variables)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Variabel | Wajib | Keterangan |
+|---|---|---|
+| `PAKASIR_SLUG` | ya | Slug proyek dari Detail Proyek Pakasir |
+| `PAKASIR_API_KEY` | ya | API key proyek dari Detail Proyek Pakasir |
+| `PAKASIR_API_BASE` | tidak | Bawaan `https://app.pakasir.com/api/v2` |
+| `PAKASIR_SUBSCRIPTION_AMOUNT` | tidak | Bawaan `3000` |
+| `NEXT_PUBLIC_SITE_URL` | tidak | Bawaan `https://ingetdiwa.hilmi.work` — dipakai untuk canonical URL & metadata |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Salin `.env.example` → `.env.local` untuk pengembangan lokal. Jika `PAKASIR_SLUG` atau
+`PAKASIR_API_KEY` kosong, endpoint checkout membalas **503** dengan pesan ramah dan tidak
+membuat transaksi.
+
+## Deploy
+
+Repo ini di-deploy otomatis oleh Vercel pada setiap push ke branch `main`.
+
+Domain:
+
+- `hilmi.work` — halaman profil.
+- `ingetdiwa.hilmi.work` — halaman produk & checkout (domain yang dipakai untuk pengajuan KYC Pakasir).
+
+Kedua domain diarahkan ke project Vercel yang sama; tambahkan `ingetdiwa.hilmi.work` di
+**Vercel → Project → Settings → Domains**, lalu buat CNAME di registrar sesuai instruksi
+Vercel.

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import Lanyard from "./components/Lanyard/Lanyard";
 import ClickSpark from './components/ClickSpark/ClickSpark';
 import Aurora from './components/Aurora/Aurora';
@@ -59,6 +60,26 @@ export default function Home() {
             </div>
             <div className="col-span-6">
 
+            </div>
+
+            <div className="col-span-12 mt-10 mb-20">
+              <Link
+                href="/ingetdiwa"
+                className="block rounded-2xl border border-white/20 bg-white/5 p-6 backdrop-blur transition-colors hover:border-emerald-400/60 md:p-8"
+              >
+                <p className="text-xs font-semibold uppercase tracking-widest text-emerald-300">
+                  Produk
+                </p>
+                <h2 className="mt-2 text-3xl font-bold">IngetDiWA</h2>
+                <p className="mt-2 max-w-2xl">
+                  Bot pengingat dan daftar tugas yang berjalan sepenuhnya di WhatsApp.
+                  Catat jadwal cukup dengan chat, dapatkan pengingat tepat waktu, dan
+                  bayar hanya Rp3.000 per bulan setelah masa coba gratis 7 hari.
+                </p>
+                <p className="mt-4 font-semibold text-emerald-300">
+                  Selengkapnya &rarr;
+                </p>
+              </Link>
             </div>
         </div>
       </div>
