@@ -1,23 +1,26 @@
 /**
- * Sumber tunggal untuk identitas produk IngetDiWA di website hilmi.work.
- * Angka & nomor di sini WAJIB sama dengan yang dipakai bot WAbot (lihat ~/WAbot/.env).
+ * Sumber tunggal untuk identitas produk IngetDiWA di subdomain produk.
+ * Angka dan nomor di sini WAJIB sama dengan yang dipakai bot WAbot (~/WAbot/.env).
  */
 
 export const PRODUCT_NAME = "IngetDiWA";
-export const PRODUCT_TAGLINE = "Pengingat & to-do list lewat WhatsApp";
+export const PRODUCT_TAGLINE = "Pengingat dan daftar tugas lewat WhatsApp";
 
-/** Nomor bot final — keputusan pemilik proyek: SELALU 628197494871. */
+/** Nomor bot final, keputusan pemilik proyek: selalu 628197494871. */
 export const BOT_PHONE = "628197494871";
 export const BOT_PHONE_DISPLAY = "+62 819-749-4871";
 
 export const SUPPORT_EMAIL = "mhilmirajwandhika@gmail.com";
 
-/** Domain kanonik website produk. Diatur lewat env agar mudah dipindah antar-domain. */
+/** Domain kanonik halaman produk. Bisa dipindah lewat env tanpa mengubah kode. */
 export const SITE_URL = (
   process.env.NEXT_PUBLIC_SITE_URL || "https://ingetdiwa.hilmi.work"
 ).replace(/\/+$/, "");
 
-/** Harga langganan (Rupiah). Harus sama dengan PAKASIR_SUBSCRIPTION_AMOUNT di server bot. */
+/** Halaman lain milik pemilik proyek yang sama. */
+export const MAIN_SITE_URL = "https://hilmi.work";
+
+/** Harga langganan. Harus sama dengan PAKASIR_SUBSCRIPTION_AMOUNT di server bot. */
 export const PRICE_IDR = 3000;
 export const PRICE_LABEL = "Rp3.000";
 export const PERIOD_DAYS = 30;

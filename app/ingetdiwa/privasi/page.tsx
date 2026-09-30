@@ -4,7 +4,7 @@ import SiteFooter from "../components/SiteFooter";
 import { PRODUCT_NAME, SITE_URL, SUPPORT_EMAIL } from "../config";
 
 export const metadata: Metadata = {
-  title: `Kebijakan Privasi — ${PRODUCT_NAME}`,
+  title: `Kebijakan privasi | ${PRODUCT_NAME}`,
   description: `Bagaimana ${PRODUCT_NAME} mengumpulkan, memakai, dan menyimpan data Anda.`,
   alternates: { canonical: `${SITE_URL}/ingetdiwa/privasi` },
 };
@@ -15,7 +15,7 @@ const sections = [
     body: [
       "Nomor WhatsApp yang Anda gunakan untuk mengirim pesan ke bot.",
       "Isi pesan yang Anda kirim ke bot, sebatas yang diperlukan untuk mencatat tugas dan waktu pengingatnya.",
-      "Data teknis minimal dari proses pembayaran (nomor pesanan, status pembayaran, dan waktu transaksi) yang diterima dari Pakasir.",
+      "Data teknis minimal dari proses pembayaran, yaitu nomor pesanan, status pembayaran, dan waktu transaksi yang kami terima dari Pakasir.",
     ],
   },
   {
@@ -30,12 +30,12 @@ const sections = [
     title: "3. Berbagi data dengan pihak ketiga",
     body: [
       "Kami tidak menjual atau menyewakan data Anda.",
-      "Nomor pesanan dan nominal pembayaran dibagikan ke Pakasir hanya untuk memproses transaksi dan menerima notifikasi pembayaran.",
-      "Kami tidak mengirim pesan promosi ke nomor yang belum menyimpan nomor bot atau belum menghubungi bot lebih dulu.",
+      "Nomor pesanan dan nominal pembayaran dibagikan ke Pakasir hanya untuk memproses transaksi dan menerima konfirmasi pembayaran.",
+      "Kami tidak mengirim pesan promosi ke nomor yang belum lebih dulu menghubungi bot.",
     ],
   },
   {
-    title: "4. Penyimpanan & keamanan",
+    title: "4. Penyimpanan dan keamanan",
     body: [
       "Data disimpan pada server kami sendiri dalam basis data lokal dan hanya dapat diakses oleh pengelola layanan.",
       "Sesi WhatsApp bot dilindungi dan tidak dibagikan kepada pihak lain.",
@@ -45,48 +45,55 @@ const sections = [
   {
     title: "5. Hak Anda",
     body: [
-      "Anda dapat berhenti kapan saja dengan mengirim kata “batal” ke bot agar tidak lagi menerima pesan.",
-      "Anda dapat meminta penghapusan data dengan mengirim email ke alamat kontak di bawah, dan kami akan memprosesnya dalam 7 hari kerja.",
+      'Anda dapat berhenti kapan saja dengan mengirim kata "batal" ke bot agar tidak lagi menerima pesan.',
+      "Anda dapat meminta penghapusan data dengan mengirim email ke alamat kontak di bawah. Permintaan kami proses dalam tujuh hari kerja.",
     ],
   },
   {
     title: "6. Perubahan kebijakan",
     body: [
-      "Kebijakan ini dapat diperbarui sewaktu-waktu. Versi terbaru selalu tersedia di halaman ini beserta tanggal pembaruannya.",
+      "Kebijakan ini dapat diperbarui sewaktu waktu. Versi terbaru selalu tersedia di halaman ini beserta tanggal pembaruannya.",
     ],
   },
 ];
 
 export default function PrivasiPage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200">
+    <div className="min-h-screen bg-brand-ink text-white antialiased">
       <SiteNav />
 
-      <main className="mx-auto max-w-3xl px-4 py-16">
-        <h1 className="text-3xl font-extrabold text-white">Kebijakan Privasi</h1>
-        <p className="mt-2 text-sm text-slate-500">
-          Berlaku untuk layanan {PRODUCT_NAME} di hilmi.work · Terakhir diperbarui: 30
-          September 2026
+      <main className="mx-auto max-w-3xl px-5 py-20">
+        <h1 className="text-[32px] font-black leading-tight tracking-tight sm:text-[38px]">
+          Kebijakan privasi
+        </h1>
+        <p className="mt-3 text-[12.5px] text-white/35">
+          Berlaku untuk layanan {PRODUCT_NAME}. Terakhir diperbarui 30 September 2026.
         </p>
 
-        <div className="mt-10 space-y-8">
+        <div className="mt-12 space-y-10">
           {sections.map((section) => (
-            <section key={section.title}>
-              <h2 className="text-lg font-semibold text-white">{section.title}</h2>
-              <ul className="mt-3 space-y-2 text-sm leading-relaxed text-slate-400">
+            <section key={section.title} className="border-t border-white/10 pt-6">
+              <h2 className="text-[16px] font-bold tracking-tight">{section.title}</h2>
+              <ul className="mt-4 space-y-2.5 text-[14px] leading-relaxed text-white/55">
                 {section.body.map((paragraph) => (
-                  <li key={paragraph}>{paragraph}</li>
+                  <li key={paragraph} className="flex gap-3">
+                    <span className="mt-[9px] h-1 w-1 shrink-0 rounded-full bg-brand-cyan/70" />
+                    {paragraph}
+                  </li>
                 ))}
               </ul>
             </section>
           ))}
         </div>
 
-        <div className="mt-12 rounded-2xl border border-white/10 bg-white/[0.02] p-6">
-          <h2 className="text-base font-semibold text-white">Kontak</h2>
-          <p className="mt-2 text-sm text-slate-400">
+        <div className="mt-14 rounded-2xl border border-white/12 bg-white/[0.03] p-7">
+          <h2 className="text-[15px] font-bold tracking-tight">Kontak</h2>
+          <p className="mt-3 text-[14px] leading-relaxed text-white/55">
             Pertanyaan tentang privasi dapat dikirim ke{" "}
-            <a href={`mailto:${SUPPORT_EMAIL}`} className="text-emerald-400 hover:underline">
+            <a
+              href={`mailto:${SUPPORT_EMAIL}`}
+              className="text-brand-cyan transition-colors hover:text-white"
+            >
               {SUPPORT_EMAIL}
             </a>
             .

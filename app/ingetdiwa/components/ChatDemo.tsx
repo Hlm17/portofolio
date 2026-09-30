@@ -19,35 +19,35 @@ const conversation: Bubble[] = [
   { from: "user", text: "1 done" },
   {
     from: "bot",
-    text: "Bagus! Tugas 1 selesai. ✅\n\nTugas hari ini:\n2. Bayar token listrik (19:30)\n\nSudah selesai:\n~1. Jemput adik di sekolah~",
+    text: "Bagus! Tugas 1 selesai.\n\nTugas hari ini:\n2. Bayar token listrik (19:30)\n\nSudah selesai:\n~1. Jemput adik di sekolah~",
   },
 ];
 
 export default function ChatDemo() {
   return (
-    <div className="mx-auto w-full max-w-sm">
-      <div className="overflow-hidden rounded-[2rem] border border-white/10 bg-slate-900 shadow-2xl">
-        <div className="flex items-center gap-3 bg-[#075E54] px-4 py-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-400 text-sm font-bold text-slate-900">
+    <div className="w-full max-w-[360px]">
+      <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] p-1.5 shadow-[0_24px_80px_-24px_rgba(58,41,255,0.55)]">
+        <div className="flex items-center gap-3 rounded-xl bg-white/[0.04] px-3.5 py-3">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-cyan text-[12px] font-black text-black">
             ID
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-white">IngetDiWA</p>
-            <p className="text-xs text-emerald-100">online</p>
+          </span>
+          <div className="leading-tight">
+            <p className="text-[13px] font-semibold text-white">IngetDiWA</p>
+            <p className="text-[11px] text-brand-cyan">aktif menerima pesan</p>
           </div>
         </div>
 
-        <div className="space-y-2 bg-[#0b141a] px-3 py-4">
+        <div className="mt-1.5 space-y-1.5 rounded-xl bg-black/40 px-3 py-4">
           {conversation.map((bubble, index) => (
             <div
               key={index}
               className={bubble.from === "user" ? "flex justify-end" : "flex justify-start"}
             >
               <p
-                className={`max-w-[85%] whitespace-pre-line rounded-2xl px-3 py-2 text-[13px] leading-snug ${
+                className={`max-w-[82%] whitespace-pre-line rounded-xl px-3 py-2 text-[12.5px] leading-relaxed ${
                   bubble.from === "user"
-                    ? "rounded-br-sm bg-[#005c4b] text-white"
-                    : "rounded-bl-sm bg-[#202c33] text-slate-100"
+                    ? "rounded-br-sm bg-brand-blue text-white"
+                    : "rounded-bl-sm border border-white/10 bg-white/[0.06] text-white/85"
                 }`}
               >
                 {bubble.text}
@@ -56,8 +56,8 @@ export default function ChatDemo() {
           ))}
         </div>
       </div>
-      <p className="mt-4 text-center text-xs text-slate-500">
-        Tangkapan layar percakapan asli dari bot IngetDiWA.
+      <p className="mt-4 text-[12px] text-white/35">
+        Percakapan sebenarnya dengan bot. Semua tanda waktu dihitung otomatis oleh sistem.
       </p>
     </div>
   );

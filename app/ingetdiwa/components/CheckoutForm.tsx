@@ -50,17 +50,17 @@ export default function CheckoutForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-7">
       <div>
-        <label htmlFor="phone" className="block text-sm font-medium text-white">
+        <label htmlFor="phone" className="block text-[14px] font-semibold text-white">
           Nomor WhatsApp Anda
         </label>
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-1.5 text-[12.5px] leading-relaxed text-white/45">
           Langganan akan diaktifkan untuk nomor ini. Gunakan nomor yang sudah atau akan
-          Anda pakai untuk chat ke bot.
+          Anda pakai untuk mengirim pesan ke bot.
         </p>
-        <div className="mt-3 flex items-center gap-2 rounded-xl border border-white/15 bg-slate-900 px-3 focus-within:border-emerald-500">
-          <span className="text-sm text-slate-400">+62</span>
+        <div className="mt-4 flex items-center gap-2 rounded-lg border border-white/15 bg-white/[0.04] px-3.5 transition-colors focus-within:border-brand-cyan">
+          <span className="text-[14px] text-white/40">+62</span>
           <input
             id="phone"
             name="phone"
@@ -71,25 +71,27 @@ export default function CheckoutForm() {
             value={phone}
             onChange={(event) => setPhone(event.target.value)}
             placeholder="8197494871"
-            className="w-full bg-transparent py-3 text-sm text-white outline-none placeholder:text-slate-600"
+            className="w-full bg-transparent py-3.5 text-[14px] text-white outline-none placeholder:text-white/25"
           />
         </div>
       </div>
 
-      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5">
-        <div className="flex items-center justify-between text-sm text-slate-300">
+      <div className="rounded-lg border border-white/10 bg-white/[0.03] p-5">
+        <div className="flex items-center justify-between text-[13.5px] text-white/70">
           <span>Paket langganan IngetDiWA ({PERIOD_DAYS} hari)</span>
           <span className="font-semibold text-white">{PRICE_LABEL}</span>
         </div>
-        <div className="mt-3 flex items-center justify-between border-t border-white/10 pt-3 text-sm text-slate-400">
-          <span>Masa coba gratis (otomatis, tanpa bayar)</span>
+        <div className="mt-3.5 flex items-center justify-between border-t border-white/10 pt-3.5 text-[13.5px] text-white/45">
+          <span>Masa coba gratis, otomatis untuk nomor baru</span>
           <span>{TRIAL_DAYS} hari</span>
         </div>
-        <div className="mt-4 flex items-baseline justify-between border-t border-white/10 pt-4">
-          <span className="text-sm text-slate-300">Total tagihan hari ini</span>
-          <span className="text-2xl font-extrabold text-white">{PRICE_LABEL}</span>
+        <div className="mt-5 flex items-baseline justify-between border-t border-white/10 pt-5">
+          <span className="text-[13.5px] text-white/70">Total tagihan hari ini</span>
+          <span className="text-[26px] font-black tracking-tight text-white">
+            {PRICE_LABEL}
+          </span>
         </div>
-        <p className="mt-2 text-xs text-slate-500">
+        <p className="mt-2 text-[12px] text-white/35">
           Dibayar sekali untuk {PERIOD_DAYS} hari. Tidak ada perpanjangan otomatis.
         </p>
       </div>
@@ -97,7 +99,7 @@ export default function CheckoutForm() {
       {error && (
         <p
           role="alert"
-          className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-200"
+          className="rounded-lg border border-brand-red/40 bg-brand-red/10 px-4 py-3 text-[13.5px] text-white/85"
         >
           {error}
         </p>
@@ -106,14 +108,15 @@ export default function CheckoutForm() {
       <button
         type="submit"
         disabled={loading}
-        className="w-full rounded-xl bg-emerald-500 px-6 py-3.5 text-sm font-semibold text-slate-950 transition-colors hover:bg-emerald-400 disabled:cursor-not-allowed disabled:opacity-60"
+        className="w-full rounded-lg bg-brand-cyan px-6 py-4 text-[14px] font-semibold text-black transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
       >
-        {loading ? "Menyiapkan pembayaran…" : `Lanjut ke Pembayaran — ${PRICE_LABEL}`}
+        {loading ? "Menyiapkan pembayaran..." : `Lanjut ke pembayaran (${PRICE_LABEL})`}
       </button>
 
-      <p className="text-center text-xs text-slate-500">
-        Anda akan diarahkan ke halaman pembayaran aman milik Pakasir (QRIS / virtual
-        account). Setelah pembayaran selesai, bot langsung mengabari Anda di WhatsApp.
+      <p className="text-[12px] leading-relaxed text-white/35">
+        Anda akan diarahkan ke halaman pembayaran Pakasir untuk memilih QRIS atau virtual
+        account. Setelah pembayaran selesai, langganan aktif otomatis dan bot mengirim
+        konfirmasi ke WhatsApp Anda.
       </p>
     </form>
   );
