@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useRef, useEffect, useCallback } from 'react';
+import { gerakDiizinkan } from '../motionPref';
 
 interface ClickSparkProps {
   sparkColor?: string;
@@ -33,6 +34,8 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sparksRef = useRef<Spark[]>([]);
   const startTimeRef = useRef<number | null>(null);
+  // Dipakai supaya loop gambar bisa dibangunkan lagi dari penanganan klik.
+  const bangunkanRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -84,18 +87,22 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
   );
 
   useEffect(() => {
+    // Percikan hanya hiasan, jadi tidak perlu digambar sama sekali bagi
+    // pengunjung yang meminta gerak minimum.
+    if (!gerakDiizinkan()) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let animationId: number;
+    let animationId = 0;
 
     const draw = (timestamp: number) => {
       if (!startTimeRef.current) {
         startTimeRef.current = timestamp;
       }
-      ctx?.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       sparksRef.current = sparksRef.current.filter((spark: Spark) => {
         const elapsed = timestamp - spark.startTime;
@@ -124,13 +131,26 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
         return true;
       });
 
+      // Loop berhenti sendiri begitu percikan terakhir habis. Sebelumnya ia
+      // berputar terus selama halaman terbuka meski tidak ada yang digambar.
+      if (sparksRef.current.length === 0) {
+        animationId = 0;
+        return;
+      }
+
       animationId = requestAnimationFrame(draw);
     };
 
-    animationId = requestAnimationFrame(draw);
+    bangunkanRef.current = () => {
+      if (animationId === 0 && sparksRef.current.length > 0) {
+        animationId = requestAnimationFrame(draw);
+      }
+    };
 
     return () => {
       cancelAnimationFrame(animationId);
+      animationId = 0;
+      bangunkanRef.current = () => {};
     };
   }, [sparkColor, sparkSize, sparkRadius, sparkCount, duration, easeFunc, extraScale]);
 
@@ -142,17 +162,17 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
     let x = 0;
     let y = 0;
 
-     if ("touches" in e) {
-    // Touch event
-    const touch = e.touches[0];
-    x = touch.clientX - rect.left;
-    y = touch.clientY - rect.top;
-  } else {
-    // Mouse event
-    x = e.clientX - rect.left;
-    y = e.clientY - rect.top;
-  }
-  
+    if ("touches" in e) {
+      // Touch event
+      const touch = e.touches[0];
+      x = touch.clientX - rect.left;
+      y = touch.clientY - rect.top;
+    } else {
+      // Mouse event
+      x = e.clientX - rect.left;
+      y = e.clientY - rect.top;
+    }
+
     const now = performance.now();
     const newSparks: Spark[] = Array.from({ length: sparkCount }, (_, i) => ({
       x,
@@ -162,15 +182,16 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
     }));
 
     sparksRef.current.push(...newSparks);
+    bangunkanRef.current();
   };
 
   return (
-    <div className="aboslute inset-0 z-[9999] relative w-full h-full" onMouseDown={handleClick} onTouchStart={handleClick}>
+    <div className="relative h-full w-full" onMouseDown={handleClick} onTouchStart={handleClick}>
       <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" />
       {children}
     </div>
   );
-  
+
 };
 
 export default ClickSpark;

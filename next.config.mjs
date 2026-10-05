@@ -1,5 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+    // AVIF lebih kecil dari WebP untuk foto. Peramban yang belum mendukungnya
+    // otomatis menerima WebP, jadi tidak ada yang perlu dikorbankan.
+    formats: ['image/avif', 'image/webp'],
+  },
+
   async rewrites() {
     return {
       beforeFiles: [

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteNav from "../../components/SiteNav";
 import SiteFooter from "../../components/SiteFooter";
-import { BOT_PHONE_DISPLAY, SITE_URL, SUPPORT_EMAIL, WA_LINK, PERIOD_DAYS } from "../../config";
+import { BOT_PHONE_DISPLAY, SITE_URL, SUPPORT_EMAIL, WA_LINK, PERIOD_DAYS, waLink } from "../../config";
 
 export const metadata: Metadata = {
   title: "Pembayaran diterima | IngetDiWA",
@@ -17,7 +17,13 @@ const langkah = [
   'Ketik "list" kapan saja untuk melihat seluruh tugas Anda.',
 ];
 
-export default function SuksesPage() {
+export default function SuksesPage({ searchParams }: { searchParams?: { txn?: string } }) {
+  // Kode transaksi datang dari tautan balik Pakasir (`?txn=`). Dipakai menyodorkan
+  // tautan WhatsApp berisi perintah `cek <kode>`, sehingga pembeli dari website bisa
+  // mengaktifkan langganannya seketika walau webhook belum sampai ke server bot.
+  const txn = (searchParams?.txn || "").trim();
+  const txnSah = /^[a-z0-9]{6,24}$/i.test(txn) ? txn : "";
+
   return (
     <div className="min-h-screen bg-brand-ink text-white antialiased">
       <SiteNav />
@@ -35,6 +41,27 @@ export default function SuksesPage() {
           {PERIOD_DAYS} hari masa aktif ke nomor WhatsApp yang Anda masukkan. Bot akan
           mengirim pesan konfirmasi beserta tanggal berakhirnya langganan.
         </p>
+
+        {txnSah ? (
+          <div className="mt-9 rounded-2xl border border-brand-cyan/30 bg-brand-cyan/[0.06] p-7">
+            <h2 className="text-[15px] font-bold tracking-tight">Aktifkan sekarang</h2>
+            <p className="mt-3 text-[13.5px] leading-relaxed text-white/65">
+              Buka WhatsApp dan kirim pesan yang sudah tertulis di bawah ini. Bot memeriksa
+              kode pembayaran Anda, lalu menambahkan masa aktifnya.
+            </p>
+            <p className="mt-4 text-[12.5px] text-white/45">
+              Kode pembayaran Anda: <span className="text-white/85">{txnSah}</span>
+            </p>
+            <a
+              href={waLink(`cek ${txnSah}`)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-5 inline-block rounded-md bg-brand-cyan px-6 py-3 text-[14px] font-semibold text-black transition-colors hover:bg-white"
+            >
+              Konfirmasi lewat WhatsApp
+            </a>
+          </div>
+        ) : null}
 
         <div className="mt-11 rounded-2xl border border-white/12 bg-white/[0.03] p-7">
           <h2 className="text-[15px] font-bold tracking-tight">Langkah selanjutnya</h2>

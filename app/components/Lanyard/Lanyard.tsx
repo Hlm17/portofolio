@@ -15,9 +15,10 @@ import {
 import { MeshLineGeometry, MeshLineMaterial } from 'meshline';
 import * as THREE from 'three';
 
-// replace with your own imports, see the usage snippet for details
-const cardGLB = "assets/lanyard/card.glb";
-const lanyard = "assets/lanyard/lanyard.png";
+// Alamat absolut, bukan relatif. Alamat relatif akan dicari dari rute yang
+// sedang dibuka, sehingga di /id dan /en model kartu gagal dimuat.
+const cardGLB = "/assets/lanyard/card.glb";
+const lanyard = "/assets/lanyard/lanyard.png";
 
 extend({ MeshLineGeometry, MeshLineMaterial });
 
@@ -26,24 +27,45 @@ interface LanyardProps {
   gravity?: [number, number, number];
   fov?: number;
   transparent?: boolean;
+  // Titik gantung tali. Nilainya harus berada di atas tepi layar (atau sedikit
+  // di atasnya) supaya tali tampak menempel di paling atas, bukan mengambang.
+  anchorY?: number;
+  // Amplitudo ayunan titik gantung dalam satuan dunia. Titik gantungnya bergerak
+  // sangat pelan mengelilingi posisi aslinya, jadi talinya selalu tampak hidup
+  // walau tidak ada yang menyentuhnya, dan kartunya bisa ditarik kapan saja.
+  ayun?: number;
+  // Geseran mendatar untuk seluruh rangkaian gantungan (titik gantung, tali, dan
+  // kartu) dalam satuan dunia. Dipakai untuk menaruh kartu di sebelah judul,
+  // sekaligus menjaga talinya tetap tegak lurus di bawah titik gantung.
+  geserX?: number;
 }
 
 export default function Lanyard({
   position = [0, 0, 17],
   gravity = [0, -40, 0],
   fov = 20,
-  transparent = true
+  transparent = true,
+  anchorY = 4,
+  geserX = 0,
+  ayun = 0.09
 }: LanyardProps) {
   return (
-    <div className="relative z-[0] w-full h-screen flex justify-center items-center transform scale-100 origin-center">
+    <div className="relative z-[0] w-full h-full flex justify-center items-center transform scale-100 origin-center">
       <Canvas
-        camera={{ position, fov }}
-        gl={{ alpha: transparent }}
+        // Rotasi nol ditulis apa adanya, bukan tanpa nilai. Tanpa rotasi, kamera
+        // otomatis diarahkan memandang titik nol, sehingga kamera yang digeser
+        // ke samping justru berputar dan isi layar kembali ke tengah. Dengan
+        // rotasi nol kamera memandang lurus ke depan, jadi geseran mendatar
+        // benar benar menggeser isi layar.
+        camera={{ position, fov, rotation: [0, 0, 0] }}
+        dpr={[1, 1.5]}
+        style={{ touchAction: "pan-y" }}
+        gl={{ alpha: transparent, powerPreference: "high-performance" }}
         onCreated={({ gl }) => gl.setClearColor(new THREE.Color(0x000000), transparent ? 0 : 1)}
       >
         <ambientLight intensity={Math.PI} />
         <Physics gravity={gravity} timeStep={1 / 60}>
-          <Band />
+          <Band anchorY={anchorY} geserX={geserX} ayun={ayun} />
         </Physics>
         <Environment blur={0.75}>
           <Lightformer
@@ -83,9 +105,31 @@ export default function Lanyard({
 interface BandProps {
   maxSpeed?: number;
   minSpeed?: number;
+  anchorY: number;
+  geserX: number;
+  ayun: number;
 }
 
-function Band({ maxSpeed = 50, minSpeed = 0 }: BandProps) {
+// Panjang tali dan letak awal rangkaian gantungan.
+//
+// Rantai fisika dibiarkan lahir dalam keadaan sudah menggantung tegak, tepat di
+// bawah titik gantungnya. Bentangan mendatar seperti pada contoh aslinya membuat
+// kartu tampak masuk dari samping dan sempat melintasi judul sebelum jatuh ke
+// tempatnya. Karena kartu bisa ditarik tarik, bentuk awalnya harus sudah benar.
+const PANJANG_SIMPUL = 1;
+// Jarak dari titik pegang ke titik berat kartu. Kartu digantung dari klip di
+// bagian atasnya, jadi jarak ini yang menentukan di mana badannya berada.
+const TINGGI_PEGANGAN = 1.45;
+// Kemiringan awal yang kecil: kartunya langsung mengayun pelan lalu berhenti,
+// tanpa bergeser mendatar sama sekali.
+const TILT_AWAL = 0.16;
+const KARTU_AWAL: [number, number, number] = [
+  0,
+  -3 * PANJANG_SIMPUL - TINGGI_PEGANGAN * Math.cos(TILT_AWAL),
+  -TINGGI_PEGANGAN * Math.sin(TILT_AWAL)
+];
+
+function Band({ maxSpeed = 50, minSpeed = 0, anchorY, geserX, ayun }: BandProps) {
   // Using "any" for refs since the exact types depend on Rapier's internals
   const band = useRef<any>(null);
   const fixed = useRef<any>(null);
@@ -149,7 +193,31 @@ function Band({ maxSpeed = 50, minSpeed = 0 }: BandProps) {
     }
   }, [hovered, dragged]);
 
+  // Melepas penarikan kartu. Penangkapan penunjuk bisa saja sudah dilepas
+  // peramban, misalnya saat sentuhan berubah menjadi guliran halaman, jadi
+  // pelepasannya tidak boleh membuat gagal.
+  const lepasTarik = (e: any) => {
+    try {
+      e.target.releasePointerCapture?.(e.pointerId);
+    } catch {
+      // Sudah dilepas peramban, tidak ada yang perlu dikerjakan.
+    }
+    drag(false);
+  };
+
   useFrame((state, delta) => {
+    // Titik gantungnya bergerak sangat pelan, dan karena kartunya tergantung pada
+    // tali, seluruh rangkaian ikut berayun seperti ada yang menyentuhnya. Ini yang
+    // membuat talinya tetap terlihat hidup tanpa perlu menambah tenaga pada
+    // kartunya, sehingga kartunya tetap ringan ditarik ke arah mana pun.
+    if (fixed.current) {
+      const waktu = state.clock.elapsedTime;
+      fixed.current.setNextKinematicTranslation({
+        x: geserX + Math.sin(waktu * 0.55) * ayun,
+        y: anchorY,
+        z: Math.cos(waktu * 0.37) * ayun * 0.7
+      });
+    }
     if (dragged && typeof dragged !== 'boolean') {
       vec.set(state.pointer.x, state.pointer.y, 0.5).unproject(state.camera);
       dir.copy(vec).sub(state.camera.position).normalize();
@@ -163,7 +231,15 @@ function Band({ maxSpeed = 50, minSpeed = 0 }: BandProps) {
     }
     if (fixed.current) {
       [j1, j2].forEach(ref => {
-        if (!ref.current.lerped) ref.current.lerped = new THREE.Vector3().copy(ref.current.translation());
+        const posisi = ref.current.translation();
+        // Titik ayun dipakai ulang di setiap frame, dan sekali terkena nilai
+        // tidak sah ia akan menyebar ke seluruh tali. Karena itu nilainya
+        // diperiksa dulu: bila tidak sah, titik ayun diambil ulang dari posisi
+        // yang sebenarnya. Tanpa ini satu frame yang gagal membuat tali hilang
+        // selamanya, sehingga kartunya tampak menggantung tanpa tali.
+        if (!ref.current.lerped || !Number.isFinite(ref.current.lerped.x) || !Number.isFinite(posisi.x)) {
+          ref.current.lerped = new THREE.Vector3().copy(posisi);
+        }
         const clampedDistance = Math.max(0.1, Math.min(1, ref.current.lerped.distanceTo(ref.current.translation())));
         ref.current.lerped.lerp(
           ref.current.translation(),
@@ -174,11 +250,18 @@ function Band({ maxSpeed = 50, minSpeed = 0 }: BandProps) {
       curve.points[1].copy(j2.current.lerped);
       curve.points[2].copy(j1.current.lerped);
       curve.points[3].copy(fixed.current.translation());
-      band.current.geometry.setPoints(curve.getPoints(32));
+      // Bentuk tali baru dikirim ke layar setelah dipastikan semua titiknya
+      // sah. Bila ada satu saja yang tidak, gambar tali sebelumnya dibiarkan
+      // utuh, jadi talinya tidak pernah berubah menjadi rangkaian tak terlihat.
+      const titikTali = curve.getPoints(32);
+      const taliSah = titikTali.every(
+        p => Number.isFinite(p.x) && Number.isFinite(p.y) && Number.isFinite(p.z)
+      );
+      if (taliSah) band.current.geometry.setPoints(titikTali);
       ang.copy(card.current.angvel());
       rot.copy(card.current.rotation());
       card.current.setAngvel({ x: ang.x, y: ang.y - rot.y * 0.25, z: ang.z });
-    } 
+    }
   });
 
   curve.curveType = 'chordal';
@@ -186,19 +269,39 @@ function Band({ maxSpeed = 50, minSpeed = 0 }: BandProps) {
 
   return (
     <>
-      <group position={[0, 4, 0]}>
-        <RigidBody ref={fixed} {...segmentProps} type={'fixed' as RigidBodyProps['type']} />
-        <RigidBody position={[0.5, 0, 0]} ref={j1} {...segmentProps} type={'dynamic' as RigidBodyProps['type']}>
-          <BallCollider args={[0.1]} />
-        </RigidBody>
-        <RigidBody position={[1, 0, 0]} ref={j2} {...segmentProps} type={'dynamic' as RigidBodyProps['type']}>
-          <BallCollider args={[0.1]} />
-        </RigidBody>
-        <RigidBody position={[1.5, 0, 0]} ref={j3} {...segmentProps} type={'dynamic' as RigidBodyProps['type']}>
+      <group position={[geserX, anchorY, 0]}>
+        <RigidBody
+          ref={fixed}
+          {...segmentProps}
+          type={'kinematicPosition' as RigidBodyProps['type']}
+        />
+        <RigidBody
+          position={[0, -PANJANG_SIMPUL, 0]}
+          ref={j1}
+          {...segmentProps}
+          type={'dynamic' as RigidBodyProps['type']}
+        >
           <BallCollider args={[0.1]} />
         </RigidBody>
         <RigidBody
-          position={[2, 0, 0]}
+          position={[0, -PANJANG_SIMPUL * 2, 0]}
+          ref={j2}
+          {...segmentProps}
+          type={'dynamic' as RigidBodyProps['type']}
+        >
+          <BallCollider args={[0.1]} />
+        </RigidBody>
+        <RigidBody
+          position={[0, -PANJANG_SIMPUL * 3, 0]}
+          ref={j3}
+          {...segmentProps}
+          type={'dynamic' as RigidBodyProps['type']}
+        >
+          <BallCollider args={[0.1]} />
+        </RigidBody>
+        <RigidBody
+          position={KARTU_AWAL}
+          rotation={[TILT_AWAL, 0, 0]}
           ref={card}
           {...segmentProps}
           type={dragged ? ('kinematicPosition' as RigidBodyProps['type']) : ('dynamic' as RigidBodyProps['type'])}
@@ -209,12 +312,22 @@ function Band({ maxSpeed = 50, minSpeed = 0 }: BandProps) {
             position={[0, -1.2, -0.05]}
             onPointerOver={() => hover(true)}
             onPointerOut={() => hover(false)}
-            onPointerUp={(e: any) => {
-              e.target.releasePointerCapture(e.pointerId);
-              drag(false);
-            }}
+            onPointerUp={lepasTarik}
+            onPointerCancel={lepasTarik}
             onPointerDown={(e: any) => {
-              e.target.setPointerCapture(e.pointerId);
+              // Kartu bisa ditarik dengan tetikus maupun dengan jari. Di layar
+              // sentuh, kanvas memakai `touch-action: pan-y`, jadi usapan tegak
+              // tetap menggulir halaman, sedangkan usapan mendatar di atas
+              // kartu menariknya. Bila peramban mengambil alih sentuhannya untuk
+              // menggulir, penarikan dilepas lewat onPointerCancel supaya kartu
+              // tidak tertinggal menempel pada jari.
+              if (!card.current) return;
+              try {
+                e.target.setPointerCapture?.(e.pointerId);
+              } catch {
+                // Ada peramban yang menolak menangkap penunjuk yang belum dikenalnya.
+                // Kartunya tetap bisa ditarik selama penunjuknya masih di atasnya.
+              }
               drag(new THREE.Vector3().copy(e.point).sub(vec.copy(card.current.translation())));
             }}
           >

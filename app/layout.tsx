@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
+import { Outfit } from "next/font/google";
+import SmoothScroll from "./components/SmoothScroll/SmoothScroll";
 import "./globals.css";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
+// Outfit sebelumnya diambil lewat @import ke fonts.googleapis.com di globals.css.
+// Permintaan itu memblokir render dan menambah dua jabat tangan lintas domain
+// sebelum teks pertama terlihat. next/font mengunduhnya sekali saat build lalu
+// menyajikannya dari domain sendiri, tanpa permintaan pihak ketiga dan tanpa
+// pergeseran tata letak karena metrik font cadangan sudah disesuaikan.
+const outfit = Outfit({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-outfit",
 });
 
 export const metadata: Metadata = {
@@ -29,8 +30,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <html lang="id" className={outfit.variable}>
+      <body className="antialiased">
+        <SmoothScroll />
         {children}
       </body>
     </html>

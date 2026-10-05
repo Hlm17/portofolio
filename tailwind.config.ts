@@ -27,8 +27,17 @@ const config: Config = {
       backgroundImage: {
         "brand-gradient": "linear-gradient(90deg, #3A29FF 0%, #FF94B4 55%, #FF3232 100%)",
       },
+      // Satu keluarga huruf untuk seluruh situs. Nilainya diisi oleh next/font
+      // di app/layout.tsx, jadi tidak ada permintaan ke layanan font luar.
       fontFamily: {
-        display: ["var(--font-geist-sans)", "Outfit", "ui-sans-serif", "system-ui"],
+        sans: [
+          "var(--font-outfit)",
+          "ui-sans-serif",
+          "system-ui",
+          "-apple-system",
+          "Segoe UI",
+          "sans-serif",
+        ],
       },
     },
   },

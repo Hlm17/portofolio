@@ -5,6 +5,7 @@ import {
   buildOrderId,
   normalizePhone,
 } from "@/app/ingetdiwa/lib/pakasir";
+import { SITE_URL } from "@/app/ingetdiwa/config";
 
 /**
  * Proxy checkout website hilmi.work → Pakasir API v2.
@@ -21,7 +22,38 @@ import {
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Pembatas sederhana per alamat IP. Endpoint ini terbuka untuk umum dan setiap
+ * panggilan membuat transaksi NYATA di Pakasir (batas Pakasir 2 permintaan/detik),
+ * jadi tanpa pengaman ini satu penyalahguna bisa menghabiskan kuota proyek.
+ * Instance serverless Vercel tidak selalu sama, jadi ini pengaman, bukan tembok.
+ */
+const JENDELA_MS = 60_000;
+const MAKS_PER_JENDELA = 5;
+const catatanIp = new Map<string, number[]>();
+
+function terlaluSering(ip: string): boolean {
+  const sekarang = Date.now();
+  if (catatanIp.size > 500) catatanIp.clear(); // jaga memori instance tetap kecil
+  const riwayat = (catatanIp.get(ip) || []).filter((t) => sekarang - t < JENDELA_MS);
+  riwayat.push(sekarang);
+  catatanIp.set(ip, riwayat);
+  return riwayat.length > MAKS_PER_JENDELA;
+}
+
 export async function POST(request: Request) {
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "tanpa-ip";
+
+  if (terlaluSering(ip)) {
+    return NextResponse.json(
+      { message: "Terlalu banyak permintaan pembayaran dari jaringan ini. Tunggu satu menit lalu coba lagi." },
+      { status: 429 }
+    );
+  }
+
   let body: { phone?: string } | null = null;
   try {
     body = await request.json();
@@ -88,11 +120,23 @@ export async function POST(request: Request) {
       );
     }
 
+    const txnId = (result.txn_id as string) || (payload?.txn_id as string) || null;
+
+    // Pakasir menampilkan tombol "Kembali ke halaman Merchant" di halaman pembayaran.
+    // Tombol itu kita arahkan ke halaman sukses sambil membawa `txn_id`, sehingga halaman
+    // sukses bisa menyodorkan tautan WhatsApp berisi "cek <kode>" bila konfirmasi webhook
+    // belum sampai. Tombolnya boleh ditekan walau pembayaran belum selesai: halaman sukses
+    // hanya mengarahkan, tidak mengklaim apa pun.
+    const kembali = txnId
+      ? `${SITE_URL}/ingetdiwa/langganan/sukses?txn=${encodeURIComponent(txnId)}`
+      : `${SITE_URL}/ingetdiwa/langganan/sukses`;
+    const tautanFinal = `${paymentLink}${paymentLink.includes("?") ? "&" : "?"}redirect=${encodeURIComponent(kembali)}`;
+
     return NextResponse.json({
       order_id: orderId,
-      txn_id: (result.txn_id as string) || (payload?.txn_id as string) || null,
+      txn_id: txnId,
       amount: SUBSCRIPTION_AMOUNT,
-      payment_link: paymentLink,
+      payment_link: tautanFinal,
     });
   } catch (error) {
     console.error("[pakasir] error jaringan", error);

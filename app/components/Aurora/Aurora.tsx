@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { Renderer, Program, Mesh, Color, Triangle } from 'ogl';
+import { gerakDiizinkan } from '../motionPref';
 
 const VERT = `#version 300 es
 in vec2 position;
@@ -140,6 +141,7 @@ export default function Aurora(props: AuroraProps) {
     gl.canvas.style.backgroundColor = 'transparent';
 
     let program: Program | undefined;
+    let gambarUlang: (() => void) | null = null;
 
     function resize() {
       if (!ctn) return;
@@ -149,6 +151,7 @@ export default function Aurora(props: AuroraProps) {
       if (program) {
         program.uniforms.uResolution.value = [width, height];
       }
+      gambarUlang?.();
     }
     window.addEventListener('resize', resize);
 
@@ -177,9 +180,20 @@ export default function Aurora(props: AuroraProps) {
     const mesh = new Mesh(gl, { geometry, program });
     ctn.appendChild(gl.canvas);
 
-    let animateId = 0;
-    const update = (t: number) => {
-      animateId = requestAnimationFrame(update);
+    // Loop gambar hanya berjalan saat aurora benar-benar terlihat. Sebelumnya
+    // ia terus menghitung meski elemennya sudah jauh di luar layar atau tab
+    // sedang tidak aktif, yang membuang baterai tanpa terlihat siapa pun.
+    const kurangiGerak = !gerakDiizinkan();
+    let terlihat = true;
+    const pengamat = new IntersectionObserver(
+      ([entri]) => {
+        terlihat = entri.isIntersecting;
+      },
+      { threshold: 0 }
+    );
+    pengamat.observe(ctn);
+
+    const gambarKerangka = (t: number) => {
       const { time = t * 0.01, speed = 1.0 } = propsRef.current;
       if (program) {
         program.uniforms.uTime.value = time * speed * 0.1;
@@ -193,12 +207,29 @@ export default function Aurora(props: AuroraProps) {
         renderer.render({ scene: mesh });
       }
     };
+
+    let animateId = 0;
+    const update = (t: number) => {
+      // Saat gerak diminimumkan, satu gambar sudah cukup: aurora tetap tampil
+      // rapi tanpa animasi yang tidak diminta.
+      if (!kurangiGerak) animateId = requestAnimationFrame(update);
+      if (!kurangiGerak && (!terlihat || document.hidden)) return;
+      gambarKerangka(t);
+    };
     animateId = requestAnimationFrame(update);
+
+    // Mengubah ukuran kanvas mengosongkan isinya. Dalam mode hemat gerak tidak
+    // ada loop yang menggambar ulang, jadi aurora harus digambar sendiri setiap
+    // kali ukurannya berubah, kalau tidak latarnya jadi kosong.
+    if (kurangiGerak) {
+      gambarUlang = () => gambarKerangka(performance.now());
+    }
 
     resize();
 
     return () => {
       cancelAnimationFrame(animateId);
+      pengamat.disconnect();
       window.removeEventListener('resize', resize);
       if (ctn && gl.canvas.parentNode === ctn) {
         ctn.removeChild(gl.canvas);

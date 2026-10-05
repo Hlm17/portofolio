@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Aurora from "../Aurora/Aurora";
 import ClickSpark from "../ClickSpark/ClickSpark";
-import Lanyard from "../Lanyard/Lanyard";
+import HeroCard from "../HeroCard/HeroCard";
 import RotatingText from "../RotatingText/RotatingText";
 import ScrollVelocity from "../ScrollVelocity/ScrollVelocity";
 import LangAttribute from "./LangAttribute";
@@ -24,102 +24,55 @@ export default function PortfolioHome({ locale }: { locale: Locale }) {
     <div className="min-h-screen overflow-x-hidden bg-brand-ink text-white antialiased">
       <LangAttribute locale={locale} />
 
-      {/* Navigasi */}
-      <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-brand-ink/70 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
-          <Link
-            href={locale === "en" ? "/en" : "/"}
-            className="text-[15px] font-bold tracking-tight text-white"
-          >
-            hilmi.work
-          </Link>
-
-          <nav className="flex items-center gap-5 sm:gap-7">
-            <a
-              href="#produk"
-              className="hidden text-[13px] text-white/60 transition-colors hover:text-white sm:block"
-            >
-              {t.nav.products}
-            </a>
-            <a
-              href="#tentang"
-              className="hidden text-[13px] text-white/60 transition-colors hover:text-white sm:block"
-            >
-              {t.nav.about}
-            </a>
-            <a
-              href="#kontak"
-              className="hidden text-[13px] text-white/60 transition-colors hover:text-white sm:block"
-            >
-              {t.nav.contact}
-            </a>
-
-            <div className="flex items-center gap-0.5 rounded-md border border-white/15 p-0.5">
-              {t.switchTo.map((option) => {
-                const active =
-                  (option.label === "ID" && locale === "id") ||
-                  (option.label === "EN" && locale === "en");
-                return (
-                  <Link
-                    key={option.href}
-                    href={option.href}
-                    className={`rounded px-2.5 py-1 text-[12px] font-semibold transition-colors ${
-                      active
-                        ? "bg-brand-cyan text-black"
-                        : "text-white/55 hover:text-white"
-                    }`}
-                  >
-                    {option.label}
-                  </Link>
-                );
-              })}
-            </div>
-          </nav>
-        </div>
-      </header>
-
-      {/* Pembuka */}
-      <section className="relative isolate">
+      {/* Pembuka. Tanpa bilah navigasi di atasnya, kartu identitas digantung
+          tepat dari tepi paling atas halaman dan judulnya duduk di sebelahnya,
+          baik di layar lebar maupun di ponsel. */}
+      <section className="relative isolate flex min-h-svh items-center overflow-hidden">
         <div className="absolute inset-0">
           <Aurora colorStops={AURORA_COLORS} blend={0.5} amplitude={0.23} speed={0.5} />
         </div>
 
-        <ClickSpark
-          sparkColor="#fff"
-          sparkSize={10}
-          sparkRadius={15}
-          sparkCount={8}
-          duration={400}
-        >
-          <div className="relative mx-auto grid max-w-6xl grid-cols-12 items-center gap-y-8 px-5 pb-20 pt-32">
-            <div className="col-span-12 lg:col-span-6">
-              <h1 className="text-[34px] font-black leading-[1.08] tracking-tight sm:text-[44px]">
-                {t.hero.lead}
-                <span className="mt-2 block">
-                  <RotatingText
-                    texts={t.hero.rotating}
-                    mainClassName="px-2.5 bg-brand-cyan text-black overflow-hidden py-1 justify-center inline-flex rounded-lg font-black"
-                    staggerFrom={"last"}
-                    initial={{ y: "100%" }}
-                    animate={{ y: 0 }}
-                    exit={{ y: "-120%" }}
-                    staggerDuration={0.025}
-                    splitLevelClassName="overflow-hidden pb-1"
-                    transition={{ type: "spring", damping: 30, stiffness: 400 }}
-                    rotationInterval={2000}
-                  />
-                </span>
-              </h1>
-              <p className="mt-6 max-w-md text-[15px] leading-relaxed text-white/60">
-                {t.hero.byline}
-              </p>
-            </div>
+        <div className="absolute inset-0 z-0 lg:left-1/2">
+          <HeroCard />
+        </div>
 
-            <div className="col-span-12 lg:col-span-6">
-              <Lanyard position={[0, 0, 17]} gravity={[0, -40, 0]} />
+        {/* Lapisan teks dilewatkan penunjuk supaya kartu yang menggantung di
+            sebelahnya tetap bisa disentuh, sedangkan blok teksnya sendiri tetap
+            menerima klik. */}
+        <div className="pointer-events-none relative z-10 w-full self-start pt-[26vh] lg:self-center lg:pt-0">
+          <div className="mx-auto max-w-6xl px-5">
+            <div className="pointer-events-auto w-[52%] lg:w-1/2">
+              <ClickSpark
+                sparkColor="#fff"
+                sparkSize={10}
+                sparkRadius={15}
+                sparkCount={8}
+                duration={400}
+              >
+                <h1 className="text-[28px] font-black leading-[1.08] tracking-tight sm:text-[34px] lg:text-[44px]">
+                  {t.hero.lead}
+                  <span className="mt-2 block">
+                    <RotatingText
+                      texts={t.hero.rotating}
+                      mainClassName="px-2.5 bg-brand-cyan text-black overflow-hidden py-1 justify-center inline-flex rounded-lg font-black"
+                      staggerFrom={"last"}
+                      initial={{ y: "100%" }}
+                      animate={{ y: 0 }}
+                      exit={{ y: "-120%" }}
+                      staggerDuration={0.025}
+                      splitLevelClassName="overflow-hidden pb-1"
+                      transition={{ type: "spring", damping: 30, stiffness: 400 }}
+                      rotationInterval={2000}
+                    />
+                  </span>
+                </h1>
+                <p className="mt-6 max-w-md text-[15px] leading-relaxed text-white/60">
+                  {t.hero.byline}
+                </p>
+              </ClickSpark>
             </div>
           </div>
-        </ClickSpark>
+        </div>
       </section>
 
       <div className="border-y border-white/10 py-7">
@@ -132,7 +85,7 @@ export default function PortfolioHome({ locale }: { locale: Locale }) {
       </div>
 
       {/* Produk */}
-      <section id="produk" className="scroll-mt-24">
+      <section id="produk">
         <div className="mx-auto max-w-6xl px-5 py-20 lg:py-24">
           <Eyebrow>{t.products.eyebrow}</Eyebrow>
           <h2 className="mt-4 max-w-2xl text-[30px] font-black leading-tight tracking-tight sm:text-[38px]">
@@ -186,7 +139,7 @@ export default function PortfolioHome({ locale }: { locale: Locale }) {
       </section>
 
       {/* Tentang */}
-      <section id="tentang" className="scroll-mt-24 border-t border-white/10">
+      <section id="tentang" className="border-t border-white/10">
         <div className="mx-auto grid max-w-6xl gap-12 px-5 py-20 lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:py-24">
           <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl border border-white/10">
             <Image
@@ -215,9 +168,10 @@ export default function PortfolioHome({ locale }: { locale: Locale }) {
         </div>
       </section>
 
-      {/* Kontak */}
-      <footer id="kontak" className="scroll-mt-24 border-t border-white/10">
-        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-5 py-14 sm:flex-row sm:items-end sm:justify-between">
+      {/* Kontak. Tautan bagian dan pilih bahasa tinggal di sini, karena bilah
+          navigasi di bagian atas halaman sudah dihapus. */}
+      <footer id="kontak" className="border-t border-white/10">
+        <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 sm:grid-cols-[1.5fr_1fr] sm:items-start">
           <div>
             <Eyebrow>{t.footer.contact}</Eyebrow>
             <a
@@ -226,8 +180,41 @@ export default function PortfolioHome({ locale }: { locale: Locale }) {
             >
               {CONTACT.label}
             </a>
+            <p className="mt-5 text-[12.5px] text-white/35">{t.footer.builtWith}</p>
           </div>
-          <p className="text-[12.5px] text-white/35">{t.footer.builtWith}</p>
+
+          <div className="flex flex-col gap-5 sm:items-end">
+            <nav className="flex items-center gap-6 text-[13px] text-white/60">
+              <a href="#produk" className="transition-colors hover:text-white">
+                {t.nav.products}
+              </a>
+              <a href="#tentang" className="transition-colors hover:text-white">
+                {t.nav.about}
+              </a>
+              <a href="#kontak" className="transition-colors hover:text-white">
+                {t.nav.contact}
+              </a>
+            </nav>
+
+            <div className="flex items-center gap-0.5 rounded-md border border-white/15 p-0.5">
+              {t.switchTo.map((option) => {
+                const active =
+                  (option.label === "ID" && locale === "id") ||
+                  (option.label === "EN" && locale === "en");
+                return (
+                  <Link
+                    key={option.href}
+                    href={option.href}
+                    className={`rounded px-2.5 py-1 text-[12px] font-semibold transition-colors ${
+                      active ? "bg-brand-cyan text-black" : "text-white/55 hover:text-white"
+                    }`}
+                  >
+                    {option.label}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
         </div>
 
         <div className="border-t border-white/5 py-6">
