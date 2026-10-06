@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { PRODUCT_NAME, MAIN_SITE_URL } from "../config";
 
@@ -13,9 +14,13 @@ export default function SiteNav() {
     <header className="sticky top-0 z-50 border-b border-white/10 bg-brand-ink/70 backdrop-blur-xl">
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
         <Link href="/ingetdiwa" className="flex items-center gap-2.5">
-          <span className="flex h-7 w-7 items-center justify-center rounded-md bg-brand-cyan text-[13px] font-black tracking-tight text-black">
-            ID
-          </span>
+          <Image
+            src="/ingetdiwa-icon.png"
+            alt=""
+            width={28}
+            height={28}
+            className="h-7 w-7 rounded-md object-cover"
+          />
           <span className="text-[17px] font-bold tracking-tight text-white">{PRODUCT_NAME}</span>
         </Link>
 

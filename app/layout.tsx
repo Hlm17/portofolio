@@ -22,6 +22,14 @@ export const metadata: Metadata = {
   },
   description:
     "Website pribadi Muhammad Hilmi Rajwandhika sekaligus tempat produk perangkat lunak yang saya bangun dan kelola sendiri, termasuk IngetDiWA, bot pengingat berbasis WhatsApp.",
+  // Ikon ditulis eksplisit di sini, bukan lewat berkas app/favicon.ico, supaya
+  // halaman produk bisa MENGGANTI ikonnya sendiri. Berkas bawaan app/favicon.ico
+  // selalu disisipkan Next.js dan tidak bisa ditimpa lewat metadata segmen,
+  // sehingga subdomain produk akan tetap menampilkan ikon profil.
+  icons: {
+    icon: [{ url: "/favicon.ico", type: "image/x-icon", sizes: "any" }],
+    shortcut: [{ url: "/favicon.ico", type: "image/x-icon" }],
+  },
 };
 
 export default function RootLayout({
