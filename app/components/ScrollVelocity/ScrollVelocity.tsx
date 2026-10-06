@@ -109,6 +109,17 @@ export const ScrollVelocity: React.FC<ScrollVelocityProps> = ({
     const copyRef = useRef<HTMLSpanElement>(null);
     const copyWidth = useElementWidth(copyRef);
 
+    // Jumlah salinan harus DIHITUNG dari lebar wadah, bukan angka tetap. Dengan
+    // angka tetap, di layar lebar seluruh isi baris tetap lebih pendek dari
+    // wadahnya, sehingga animasi menyisakan pita kosong di tepi kanan
+    // (terlihat pada lebar 1366px ke atas, di beranda dan halaman produk).
+    const containerRef = useRef<HTMLDivElement>(null);
+    const containerWidth = useElementWidth(containerRef);
+    const totalCopies =
+      copyWidth > 0 && containerWidth > 0
+        ? Math.max(numCopies!, Math.ceil(containerWidth / copyWidth) + 1)
+        : numCopies!;
+
     function wrap(min: number, max: number, v: number): number {
       const range = max - min;
       const mod = (((v - min) % range) + range) % range;
@@ -135,7 +146,7 @@ export const ScrollVelocity: React.FC<ScrollVelocityProps> = ({
     });
 
     const spans = [];
-    for (let i = 0; i < numCopies!; i++) {
+    for (let i = 0; i < totalCopies; i++) {
       spans.push(
         <span className={`flex-shrink-0 ${className}`} key={i} ref={i === 0 ? copyRef : null}>
           {children}
@@ -144,7 +155,7 @@ export const ScrollVelocity: React.FC<ScrollVelocityProps> = ({
     }
 
     return (
-      <div className={`${parallaxClassName} relative overflow-hidden`} style={parallaxStyle}>
+      <div ref={containerRef} className={`${parallaxClassName} relative overflow-hidden`} style={parallaxStyle}>
         <motion.div
           className={`${scrollerClassName} flex whitespace-nowrap text-center font-sans text-4xl font-bold tracking-[-0.02em] drop-shadow md:text-[5rem] md:leading-[5rem]`}
           style={{ x, ...scrollerStyle }}
