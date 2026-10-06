@@ -4,53 +4,68 @@ import { Fragment, type ReactNode } from "react";
 type Bubble = { from: "user" | "bot"; text: string };
 
 /**
- * Percakapan ini meniru perilaku bot yang sebenarnya.
- *
- * Bedanya dengan versi sebelumnya: setiap tugas baru masuk ke SATU daftar yang
- * sudah ada dengan penomoran lanjut, bukan menampilkan daftar baru yang mulai
- * dari nomor 1 lagi. Tugas yang baru ditambahkan dibungkus `_garis bawah_`
- * supaya tampil miring, persis balasan asli bot di WhatsApp.
+ * Percakapan ini meniru balasan bot yang sebenarnya, redaksi dan tanda
+ * pemformatan WhatsApp-nya sekaligus:
+ *  - Tugas baru masuk ke SATU daftar yang sudah ada dengan penomoran lanjut,
+ *    dan hanya baris baru itu yang dicetak miring (dibungkus `_garis bawah_`).
+ *  - Judul daftar dicetak tebal (`*bintang*`), sama seperti balasan asli bot.
+ *  - Setelah satu tugas dicoret, nomor daftar dirapikan lagi dari 1, dan
+ *    tugas yang selesai dipindah ke daftar coretan (`~garis gelombang~`).
+ *  - Satu tugas sengaja ditulis tanpa jam, karena bot juga menyimpan tugas
+ *    yang belum punya waktu sama sekali.
  */
 const conversation: Bubble[] = [
-  { from: "user", text: "jemput adik di sekolah jam 3 sore" },
+  { from: "user", text: "jemput adik di sekolah jam 4 sore" },
   {
     from: "bot",
-    text: "Tugas 'jemput adik di sekolah jam 3 sore' ditambahkan:\n1. _Jemput adik di sekolah (15:00)_",
+    text: "Tugas 'jemput adik di sekolah jam 4 sore' ditambahkan:\n1. _Jemput adik di sekolah (16:00)_",
   },
-  { from: "user", text: "ingetin bayar token listrik abis isya" },
+  { from: "user", text: "beli galon air minum" },
   {
     from: "bot",
-    text: "Tugas 'ingetin bayar token listrik abis isya' ditambahkan:\n1. Jemput adik di sekolah (15:00)\n2. _Bayar token listrik (19:30)_",
+    text: "Tugas 'beli galon air minum' ditambahkan:\n1. Jemput adik di sekolah (16:00)\n2. _Beli galon air minum_",
+  },
+  { from: "user", text: "bayar tagihan listrik abis isya" },
+  {
+    from: "bot",
+    text: "Tugas 'bayar tagihan listrik abis isya' ditambahkan:\n1. Jemput adik di sekolah (16:00)\n2. Beli galon air minum\n3. _Bayar tagihan listrik (19:30)_",
   },
   { from: "user", text: "list" },
   {
     from: "bot",
-    text: "Tugas hari ini:\n1. Jemput adik di sekolah (15:00)\n2. Bayar token listrik (19:30)",
+    text: '📋 *Tugas hari ini:*\n\n1. Jemput adik di sekolah (16:00)\n2. Beli galon air minum\n3. Bayar tagihan listrik (19:30)\n\n_Ketik "1 done" untuk menyelesaikan tugas nomor 1._',
   },
   { from: "user", text: "1 done" },
   {
     from: "bot",
-    text: "Bagus! Tugas 1 selesai.\n\nTugas hari ini:\n2. Bayar token listrik (19:30)\n\nSudah selesai:\n~1. Jemput adik di sekolah~",
+    text: "Bagus! Tugas 1 selesai. ✅\n*Tugas hari ini:*\n1. Beli galon air minum\n2. Bayar tagihan listrik (19:30)\n\n*Sudah selesai (List selesai direset setiap hari):*\n~Jemput adik di sekolah~",
   },
 ];
 
 /**
- * Penanda WhatsApp yang dipakai bot: `_miring_` dan `~tercoret~`.
- * Tanpa ini, tanda garis bawah dan gelombang akan ikut tercetak apa adanya.
+ * Penanda WhatsApp yang dipakai bot: `_miring_`, `*tebal*`, dan `~tercoret~`.
+ * Tanpa ini, tanda-tandanya ikut tercetak apa adanya.
  */
 function renderLine(line: string, keyPrefix: number): ReactNode[] {
   return line
-    .split(/(_[^_]+_|~[^~]+~)/g)
+    .split(/(_[^_]+_|\*[^*]+\*|~[^~]+~)/g)
     .filter((part) => part !== "")
     .map((part, index) => {
       const key = `${keyPrefix}-${index}`;
-      if (part.length > 2 && part.startsWith("_") && part.endsWith("_")) {
-        return <em key={key}>{part.slice(1, -1)}</em>;
-      }
-      if (part.length > 2 && part.startsWith("~") && part.endsWith("~")) {
+      const wrapped = /^(_|\*|~)([\s\S]+)\1$/.exec(part);
+      if (wrapped) {
+        const teks = wrapped[2];
+        if (wrapped[1] === "_") return <em key={key}>{teks}</em>;
+        if (wrapped[1] === "*") {
+          return (
+            <strong key={key} className="font-semibold text-white">
+              {teks}
+            </strong>
+          );
+        }
         return (
           <s key={key} className="text-white/45">
-            {part.slice(1, -1)}
+            {teks}
           </s>
         );
       }
@@ -101,7 +116,7 @@ export default function ChatDemo() {
         </div>
       </div>
       <p className="mt-4 text-[12px] text-white/35">
-        Percakapan sebenarnya dengan bot. Semua tanda waktu dihitung otomatis oleh sistem.
+        Percakapan sebenarnya dengan bot. Tugas tanpa jam tetap tersimpan di daftar Anda.
       </p>
     </div>
   );
