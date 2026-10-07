@@ -84,53 +84,88 @@ export default function PortfolioHome({ locale }: { locale: Locale }) {
         />
       </div>
 
-      {/* Produk */}
-      <section id="produk">
+      {/* Pengalaman: apa yang saya kerjakan, termasuk pengujian game beserta
+          tautan laporan yang saya tulis. */}
+      <section id="pengalaman">
         <div className="mx-auto max-w-6xl px-5 py-20 lg:py-24">
-          <Eyebrow>{t.products.eyebrow}</Eyebrow>
+          <Eyebrow>{t.experience.eyebrow}</Eyebrow>
           <h2 className="mt-4 max-w-2xl text-[30px] font-black leading-tight tracking-tight sm:text-[38px]">
-            {t.products.title}
+            {t.experience.title}
           </h2>
           <p className="mt-5 max-w-2xl text-[14px] leading-relaxed text-white/55">
-            {t.products.lead}
+            {t.experience.lead}
           </p>
 
           <div className="mt-14 space-y-6">
-            {t.products.items.map((product) => (
+            {t.experience.items.map((item) => (
               <article
-                key={product.name}
+                key={item.name}
                 className="group grid gap-8 rounded-2xl border border-white/12 bg-white/[0.03] p-7 transition-colors hover:border-brand-cyan/45 md:grid-cols-[1.6fr_1fr] md:p-9"
               >
                 <div>
                   <div className="flex flex-wrap items-center gap-3">
                     <span className="text-[11px] uppercase tracking-[0.18em] text-white/40">
-                      {product.category}
+                      {item.category}
                     </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-cyan/35 px-2.5 py-0.5 text-[11px] text-brand-cyan">
-                      <span className="h-1.5 w-1.5 rounded-full bg-brand-cyan" />
-                      {product.status}
-                    </span>
+                    {item.status ? (
+                      <span className="inline-flex items-center gap-1.5 rounded-full border border-brand-cyan/35 px-2.5 py-0.5 text-[11px] text-brand-cyan">
+                        <span className="h-1.5 w-1.5 rounded-full bg-brand-cyan" />
+                        {item.status}
+                      </span>
+                    ) : null}
                   </div>
 
                   <h3 className="mt-6 text-[24px] font-black tracking-tight sm:text-[28px]">
-                    {product.name}
+                    {item.name}
                   </h3>
                   <p className="mt-4 max-w-xl text-[14px] leading-relaxed text-white/55">
-                    {product.description}
+                    {item.description}
                   </p>
                 </div>
 
                 <div className="flex flex-col justify-between gap-6 md:items-end md:text-right">
-                  <p className="text-[13px] text-white/40">{product.meta}</p>
-                  <a
-                    href={product.href}
-                    className="inline-flex items-center gap-2 text-[13.5px] font-semibold text-brand-cyan transition-colors hover:text-white"
-                  >
-                    {product.cta}
-                    <span className="transition-transform group-hover:translate-x-0.5">
-                      &rarr;
-                    </span>
-                  </a>
+                  <p className="text-[13px] text-white/40">{item.meta}</p>
+
+                  {/* Satu pengalaman bisa punya beberapa tautan keluar, jadi
+                      tautannya dirender sebagai daftar. Kartu yang hanya punya
+                      satu tautan tetap tampil sama seperti sebelumnya. */}
+                  <div className="flex flex-col gap-3 md:items-end">
+                    {item.href && item.cta ? (
+                      <a
+                        href={item.href}
+                        className="inline-flex items-center gap-2 text-[13.5px] font-semibold text-brand-cyan transition-colors hover:text-white"
+                      >
+                        {item.cta}
+                        <span className="transition-transform group-hover:translate-x-0.5">
+                          &rarr;
+                        </span>
+                      </a>
+                    ) : null}
+
+                    {item.reports?.length ? (
+                      <>
+                        <div className="flex flex-col gap-2.5 md:items-end">
+                          {item.reports.map((report) => (
+                            <a
+                              key={report.href}
+                              href={report.href}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-2 text-[13.5px] font-semibold text-brand-cyan transition-colors hover:text-white"
+                            >
+                              {report.label}
+                              <span className="transition-transform group-hover:translate-x-0.5">
+                                &rarr;
+                              </span>
+                            </a>
+                          ))}
+                        </div>
+                        <p className="max-w-[220px] text-[11.5px] leading-relaxed text-white/30 md:text-right">
+                          {t.experience.reportNote}
+                        </p>
+                      </>
+                    ) : null}
+                  </div>
                 </div>
               </article>
             ))}
@@ -185,8 +220,8 @@ export default function PortfolioHome({ locale }: { locale: Locale }) {
 
           <div className="flex flex-col gap-5 sm:items-end">
             <nav className="flex items-center gap-6 text-[13px] text-white/60">
-              <a href="#produk" className="transition-colors hover:text-white">
-                {t.nav.products}
+              <a href="#pengalaman" className="transition-colors hover:text-white">
+                {t.nav.experience}
               </a>
               <a href="#tentang" className="transition-colors hover:text-white">
                 {t.nav.about}

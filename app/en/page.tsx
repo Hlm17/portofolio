@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://hilmi.work/en",
     languages: {
-      "id-ID": "/id",
+      "id-ID": "/",
       "en-US": "/en",
       "x-default": "/",
     },

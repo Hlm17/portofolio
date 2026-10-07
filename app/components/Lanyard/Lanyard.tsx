@@ -1,6 +1,6 @@
 /* eslint-disable react/no-unknown-property */
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Canvas, extend, useFrame } from '@react-three/fiber';
 import { useGLTF, useTexture, Environment, Lightformer } from '@react-three/drei';
 import {
@@ -196,14 +196,41 @@ function Band({ maxSpeed = 50, minSpeed = 0, anchorY, geserX, ayun }: BandProps)
   // Melepas penarikan kartu. Penangkapan penunjuk bisa saja sudah dilepas
   // peramban, misalnya saat sentuhan berubah menjadi guliran halaman, jadi
   // pelepasannya tidak boleh membuat gagal.
-  const lepasTarik = (e: any) => {
+  const lepasTarik = useCallback((e?: any) => {
     try {
-      e.target.releasePointerCapture?.(e.pointerId);
+      e?.target?.releasePointerCapture?.(e?.pointerId);
     } catch {
       // Sudah dilepas peramban, tidak ada yang perlu dikerjakan.
     }
     drag(false);
-  };
+  }, []);
+
+  // Pelepasan tarikan tidak boleh bergantung pada penunjuk yang masih berada di
+  // atas kartu. Saat kartu ditarik cepat lalu dilepas di tempat lain, peristiwa
+  // lepas tidak pernah sampai ke kartu, dan karena kartu yang dipegang
+  // dipindahkan secara kinematik, kartunya akan menempel pada penunjuk terus
+  // tanpa bisa dilepas sampai halaman dimuat ulang. Persis itulah yang membuat
+  // kartunya terasa tidak bisa dimainkan.
+  //
+  // Karena itu, selama kartu dipegang, peristiwa lepas juga didengar langsung
+  // dari jendela. Dengan begitu pelepasan tetap tercatat walau penunjuknya sudah
+  // jauh dari kartu, walau jendelanya kehilangan fokus, dan walau peramban
+  // mengambil alih sentuhan untuk menggulir halaman.
+  useEffect(() => {
+    if (!dragged) return;
+
+    const lepas = () => lepasTarik();
+
+    window.addEventListener('pointerup', lepas);
+    window.addEventListener('pointercancel', lepas);
+    window.addEventListener('blur', lepas);
+
+    return () => {
+      window.removeEventListener('pointerup', lepas);
+      window.removeEventListener('pointercancel', lepas);
+      window.removeEventListener('blur', lepas);
+    };
+  }, [dragged, lepasTarik]);
 
   useFrame((state, delta) => {
     // Titik gantungnya bergerak sangat pelan, dan karena kartunya tergantung pada
@@ -343,6 +370,18 @@ function Band({ maxSpeed = 50, minSpeed = 0, anchorY, geserX, ayun }: BandProps)
             </mesh>
             <mesh geometry={nodes.clip.geometry} material={materials.metal} material-roughness={0.3} />
             <mesh geometry={nodes.clamp.geometry} material={materials.metal} />
+            {/* Bidang tak terlihat yang memperluas area pegang kartu. Bidang ini
+                tidak menulis warna maupun kedalaman, jadi tidak terlihat sama
+                sekali, tetapi tetap bisa dikenai sorotan penunjuk. Gunanya supaya
+                orang yang menyentuh beberapa puluh piksel di luar tepi kartu,
+                misalnya pada klip di atasnya, tetap bisa menarik kartunya.
+                Bidang ini diletakkan pada rangkaian yang sama dengan kartunya,
+                jadi besar dan letaknya ikut mengikuti kartu di semua ukuran
+                layar. */}
+            <mesh position={[0, 1.2, 0.08]}>
+              <planeGeometry args={[0.95, 1.45]} />
+              <meshBasicMaterial colorWrite={false} depthWrite={false} />
+            </mesh>
           </group>
         </RigidBody>
       </group>

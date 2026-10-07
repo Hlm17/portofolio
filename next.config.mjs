@@ -6,6 +6,19 @@ const nextConfig = {
     formats: ['image/avif', 'image/webp'],
   },
 
+  async redirects() {
+    return [
+      // Halaman profil hanya punya dua alamat: "/" untuk bahasa Indonesia dan
+      // "/en" untuk bahasa Inggris. Alamat lama "/id" tetap diarahkan supaya
+      // tautan yang sudah tersebar tidak menemui halaman kosong.
+      {
+        source: '/id',
+        destination: '/',
+        permanent: true,
+      },
+    ];
+  },
+
   async rewrites() {
     return {
       beforeFiles: [

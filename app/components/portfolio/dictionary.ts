@@ -12,32 +12,42 @@ export const locales: Locale[] = ["id", "en"];
 
 export const DEFAULT_LOCALE: Locale = "id";
 
-export type ProductCopy = {
+/**
+ * Satu kartu pengalaman kerja.
+ *
+ * `status`, `cta`, `href`, dan `reports` semuanya boleh kosong, karena tidak
+ * setiap pengalaman punya lencana status atau tautan keluar. Kartu yang tidak
+ * punya `href` hanya menampilkan daftar `reports`, kartu yang tidak punya
+ * keduanya tetap tampil rapi dengan bagian kanan yang lebih sederhana.
+ */
+export type ExperienceCopy = {
   name: string;
   category: string;
   description: string;
   meta: string;
-  status: string;
-  cta: string;
-  href: string;
+  status?: string;
+  cta?: string;
+  href?: string;
+  reports?: { label: string; href: string }[];
 };
 
 export type Dictionary = {
   metaTitle: string;
   metaDescription: string;
   langLabel: string;
-  nav: { products: string; about: string; contact: string };
+  nav: { experience: string; about: string; contact: string };
   hero: {
     lead: string;
     rotating: string[];
     byline: string;
     scroll: string;
   };
-  products: {
+  experience: {
     eyebrow: string;
     title: string;
     lead: string;
-    items: ProductCopy[];
+    reportNote: string;
+    items: ExperienceCopy[];
   };
   about: {
     eyebrow: string;
@@ -56,23 +66,32 @@ export type Dictionary = {
 const PRODUCT_HREF = "https://ingetdiwa.hilmi.work";
 const CONTACT_EMAIL = "mhilmirajwandhika@gmail.com";
 
+// Laporan pengujian game Age of Crowns yang saya tulis. Keduanya ada di Notion,
+// jadi pengunjung perlu izin akses halaman dari pemilik ruang kerja untuk
+// membukanya.
+const GAME_REPORT_HREF_1 =
+  "https://app.notion.com/p/hlm17/Age-of-Crowns-Report-1-10-2026-3ec50c971ad180d392d2e887f8bb2fe5?source=copy_link";
+const GAME_REPORT_HREF_2 =
+  "https://app.notion.com/p/hlm17/Age-of-Crowns-Report-5-10-2026-3f050c971ad180789de4d6bc5cf88b4e?source=copy_link";
+
 export const dictionary: Record<Locale, Dictionary> = {
   id: {
     metaTitle: "Muhammad Hilmi Rajwandhika | hilmi.work",
     metaDescription:
       "Website pribadi Muhammad Hilmi Rajwandhika sekaligus tempat produk perangkat lunak yang saya bangun dan kelola sendiri, termasuk IngetDiWA, bot pengingat berbasis WhatsApp.",
     langLabel: "Bahasa Indonesia",
-    nav: { products: "Produk", about: "Tentang", contact: "Kontak" },
+    nav: { experience: "Pengalaman", about: "Tentang", contact: "Kontak" },
     hero: {
       lead: "Membangun bisnis Anda melalui",
       rotating: ["Kreativitas", "Website"],
       byline: "Bersama saya, Muhammad Hilmi Rajwandhika",
       scroll: "Tentang saya",
     },
-    products: {
-      eyebrow: "Produk",
-      title: "Perangkat lunak yang saya bangun dan kelola",
-      lead: "Setiap produk di bawah ini saya kerjakan sendiri, mulai dari perancangan, penulisan kode, penyiapan server, sampai pemantauan harian setelah dipakai orang lain.",
+    experience: {
+      eyebrow: "Pengalaman",
+      title: "Yang saya kerjakan",
+      lead: "Dua hal yang saya jalani sekarang: membangun dan mengelola perangkat lunak sendiri, serta menguji game dan menulis laporannya secara terstruktur.",
+      reportNote: "Laporan lengkap ada di Notion.",
       items: [
         {
           name: "IngetDiWA",
@@ -83,6 +102,17 @@ export const dictionary: Record<Locale, Dictionary> = {
           status: "Berjalan",
           cta: "Buka IngetDiWA",
           href: PRODUCT_HREF,
+        },
+        {
+          name: "Game Tester",
+          category: "Pengujian game dan pelaporan",
+          description:
+            "Menguji game Age of Crowns dari sisi pemain: menelusuri alur permainan, mencari perilaku yang menyimpang dari yang seharusnya, lalu menyusun laporan yang bisa langsung dikerjakan tim pengembang. Setiap temuan saya lengkapi dengan langkah pengulangan, bukti tangkapan layar, dan tingkat keparahan.",
+          meta: "Age of Crowns, laporan 1 dan 5 Oktober 2026",
+          reports: [
+            { label: "Laporan 1 Oktober 2026", href: GAME_REPORT_HREF_1 },
+            { label: "Laporan 5 Oktober 2026", href: GAME_REPORT_HREF_2 },
+          ],
         },
       ],
     },
@@ -101,7 +131,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       contact: "Hubungi saya",
     },
     switchTo: [
-      { href: "/id", label: "ID" },
+      { href: "/", label: "ID" },
       { href: "/en", label: "EN" },
     ],
   },
@@ -111,17 +141,18 @@ export const dictionary: Record<Locale, Dictionary> = {
     metaDescription:
       "Personal website of Muhammad Hilmi Rajwandhika and home of the software products I build and operate, including IngetDiWA, a WhatsApp based reminder bot.",
     langLabel: "English",
-    nav: { products: "Products", about: "About", contact: "Contact" },
+    nav: { experience: "Experience", about: "About", contact: "Contact" },
     hero: {
       lead: "Empowering your business through",
       rotating: ["Creativity", "Websites"],
       byline: "With me, Muhammad Hilmi Rajwandhika",
       scroll: "About me",
     },
-    products: {
-      eyebrow: "Products",
-      title: "Software I build and operate",
-      lead: "Everything below is my own work, from planning and writing the code to setting up the server and watching over it once people start using it.",
+    experience: {
+      eyebrow: "Experience",
+      title: "What I do",
+      lead: "Two things I work on right now: building and running my own software, and testing games and writing the reports in a structured way.",
+      reportNote: "The full reports live in Notion.",
       items: [
         {
           name: "IngetDiWA",
@@ -132,6 +163,17 @@ export const dictionary: Record<Locale, Dictionary> = {
           status: "Live",
           cta: "Open IngetDiWA",
           href: PRODUCT_HREF,
+        },
+        {
+          name: "Game Tester",
+          category: "Game testing and reporting",
+          description:
+            "Testing the game Age of Crowns from a player's side: walking through the play flow, hunting for behaviour that deviates from what should happen, then writing reports the development team can act on straight away. Every finding comes with reproduction steps, screenshots, and a severity.",
+          meta: "Age of Crowns, reports dated 1 and 5 October 2026",
+          reports: [
+            { label: "Report 1 October 2026", href: GAME_REPORT_HREF_1 },
+            { label: "Report 5 October 2026", href: GAME_REPORT_HREF_2 },
+          ],
         },
       ],
     },
@@ -150,7 +192,7 @@ export const dictionary: Record<Locale, Dictionary> = {
       contact: "Get in touch",
     },
     switchTo: [
-      { href: "/id", label: "ID" },
+      { href: "/", label: "ID" },
       { href: "/en", label: "EN" },
     ],
   },
