@@ -15,10 +15,12 @@ export const DEFAULT_LOCALE: Locale = "id";
 /**
  * Satu kartu pengalaman kerja.
  *
- * `status`, `cta`, `href`, dan `reports` semuanya boleh kosong, karena tidak
- * setiap pengalaman punya lencana status atau tautan keluar. Kartu yang tidak
- * punya `href` hanya menampilkan daftar `reports`, kartu yang tidak punya
- * keduanya tetap tampil rapi dengan bagian kanan yang lebih sederhana.
+ * `status`, `cta`, dan `href` semuanya boleh kosong, karena tidak setiap
+ * pengalaman punya lencana status atau tautan. Kartu tanpa `href` tetap tampil
+ * rapi dengan bagian kanan yang lebih sederhana.
+ *
+ * `href` boleh berisi alamat di dalam situs ini, misalnya halaman daftar
+ * laporan pengujian game, maupun alamat lengkap ke situs lain.
  */
 export type ExperienceCopy = {
   name: string;
@@ -28,7 +30,6 @@ export type ExperienceCopy = {
   status?: string;
   cta?: string;
   href?: string;
-  reports?: { label: string; href: string }[];
 };
 
 export type Dictionary = {
@@ -46,7 +47,6 @@ export type Dictionary = {
     eyebrow: string;
     title: string;
     lead: string;
-    reportNote: string;
     items: ExperienceCopy[];
   };
   about: {
@@ -66,13 +66,11 @@ export type Dictionary = {
 const PRODUCT_HREF = "https://ingetdiwa.hilmi.work";
 const CONTACT_EMAIL = "mhilmirajwandhika@gmail.com";
 
-// Laporan pengujian game Age of Crowns yang saya tulis. Keduanya ada di Notion,
-// jadi pengunjung perlu izin akses halaman dari pemilik ruang kerja untuk
-// membukanya.
-const GAME_REPORT_HREF_1 =
-  "https://app.notion.com/p/hlm17/Age-of-Crowns-Report-1-10-2026-3ec50c971ad180d392d2e887f8bb2fe5?source=copy_link";
-const GAME_REPORT_HREF_2 =
-  "https://app.notion.com/p/hlm17/Age-of-Crowns-Report-5-10-2026-3f050c971ad180789de4d6bc5cf88b4e?source=copy_link";
+// Halaman game tester punya alamat sendiri, karena jumlah game dan laporannya
+// akan terus bertambah. Di sana pengunjung memilih kartu game dulu, baru
+// laporannya terbuka. Tautan Notion mentahnya tinggal di halaman itu, bukan lagi
+// di kartu profil ini.
+const GAME_REPORTS_HREF = "/gametester";
 
 export const dictionary: Record<Locale, Dictionary> = {
   id: {
@@ -91,7 +89,6 @@ export const dictionary: Record<Locale, Dictionary> = {
       eyebrow: "Pengalaman",
       title: "Yang saya kerjakan",
       lead: "Dua hal yang saya jalani sekarang: membangun dan mengelola perangkat lunak sendiri, serta menguji game dan menulis laporannya secara terstruktur.",
-      reportNote: "Laporan lengkap ada di Notion.",
       items: [
         {
           name: "IngetDiWA",
@@ -109,10 +106,8 @@ export const dictionary: Record<Locale, Dictionary> = {
           description:
             "Menguji game Age of Crowns dari sisi pemain: menelusuri alur permainan, mencari perilaku yang menyimpang dari yang seharusnya, lalu menyusun laporan yang bisa langsung dikerjakan tim pengembang. Setiap temuan saya lengkapi dengan langkah pengulangan, bukti tangkapan layar, dan tingkat keparahan.",
           meta: "Age of Crowns, laporan 1 dan 5 Oktober 2026",
-          reports: [
-            { label: "Laporan 1 Oktober 2026", href: GAME_REPORT_HREF_1 },
-            { label: "Laporan 5 Oktober 2026", href: GAME_REPORT_HREF_2 },
-          ],
+          cta: "Buka halaman game tester",
+          href: GAME_REPORTS_HREF,
         },
       ],
     },
@@ -152,7 +147,6 @@ export const dictionary: Record<Locale, Dictionary> = {
       eyebrow: "Experience",
       title: "What I do",
       lead: "Two things I work on right now: building and running my own software, and testing games and writing the reports in a structured way.",
-      reportNote: "The full reports live in Notion.",
       items: [
         {
           name: "IngetDiWA",
@@ -170,10 +164,8 @@ export const dictionary: Record<Locale, Dictionary> = {
           description:
             "Testing the game Age of Crowns from a player's side: walking through the play flow, hunting for behaviour that deviates from what should happen, then writing reports the development team can act on straight away. Every finding comes with reproduction steps, screenshots, and a severity.",
           meta: "Age of Crowns, reports dated 1 and 5 October 2026",
-          reports: [
-            { label: "Report 1 October 2026", href: GAME_REPORT_HREF_1 },
-            { label: "Report 5 October 2026", href: GAME_REPORT_HREF_2 },
-          ],
+          cta: "Open the game tester page",
+          href: GAME_REPORTS_HREF,
         },
       ],
     },

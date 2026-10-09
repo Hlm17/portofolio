@@ -13,7 +13,7 @@ const AURORA_COLORS = ["#3A29FF", "#FF94B4", "#FF3232"];
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
-    <p className="text-[11px] uppercase tracking-[0.2em] text-white/35">{children}</p>
+    <p className="text-[11px] uppercase tracking-[0.2em] text-white/55">{children}</p>
   );
 }
 
@@ -49,7 +49,7 @@ export default function PortfolioHome({ locale }: { locale: Locale }) {
                 sparkCount={8}
                 duration={400}
               >
-                <h1 className="text-[28px] font-black leading-[1.08] tracking-tight sm:text-[34px] lg:text-[44px]">
+                <h1 className="text-[clamp(20px,7vw,28px)] font-black leading-[1.08] tracking-tight sm:text-[34px] lg:text-[44px]">
                   {t.hero.lead}
                   <span className="mt-2 block">
                     <RotatingText
@@ -104,7 +104,7 @@ export default function PortfolioHome({ locale }: { locale: Locale }) {
               >
                 <div>
                   <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-[11px] uppercase tracking-[0.18em] text-white/40">
+                    <span className="text-[11px] uppercase tracking-[0.18em] text-white/55">
                       {item.category}
                     </span>
                     {item.status ? (
@@ -124,46 +124,34 @@ export default function PortfolioHome({ locale }: { locale: Locale }) {
                 </div>
 
                 <div className="flex flex-col justify-between gap-6 md:items-end md:text-right">
-                  <p className="text-[13px] text-white/40">{item.meta}</p>
+                  <p className="text-[13px] text-white/55">{item.meta}</p>
 
-                  {/* Satu pengalaman bisa punya beberapa tautan keluar, jadi
-                      tautannya dirender sebagai daftar. Kartu yang hanya punya
-                      satu tautan tetap tampil sama seperti sebelumnya. */}
                   <div className="flex flex-col gap-3 md:items-end">
+                    {/* Tautan di dalam situs ini dilewatkan Link supaya
+                        perpindahannya tidak memuat ulang seluruh halaman,
+                        sedangkan tautan ke situs lain tetap tautan biasa. */}
                     {item.href && item.cta ? (
-                      <a
-                        href={item.href}
-                        className="inline-flex items-center gap-2 text-[13.5px] font-semibold text-brand-cyan transition-colors hover:text-white"
-                      >
-                        {item.cta}
-                        <span className="transition-transform group-hover:translate-x-0.5">
-                          &rarr;
-                        </span>
-                      </a>
-                    ) : null}
-
-                    {item.reports?.length ? (
-                      <>
-                        <div className="flex flex-col gap-2.5 md:items-end">
-                          {item.reports.map((report) => (
-                            <a
-                              key={report.href}
-                              href={report.href}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-2 text-[13.5px] font-semibold text-brand-cyan transition-colors hover:text-white"
-                            >
-                              {report.label}
-                              <span className="transition-transform group-hover:translate-x-0.5">
-                                &rarr;
-                              </span>
-                            </a>
-                          ))}
-                        </div>
-                        <p className="max-w-[220px] text-[11.5px] leading-relaxed text-white/30 md:text-right">
-                          {t.experience.reportNote}
-                        </p>
-                      </>
+                      item.href.startsWith("/") ? (
+                        <Link
+                          href={item.href}
+                          className="inline-flex items-center gap-2 py-3 -my-3 text-[13.5px] font-semibold text-brand-cyan transition-colors hover:text-white"
+                        >
+                          {item.cta}
+                          <span className="transition-transform group-hover:translate-x-0.5">
+                            &rarr;
+                          </span>
+                        </Link>
+                      ) : (
+                        <a
+                          href={item.href}
+                          className="inline-flex items-center gap-2 py-3 -my-3 text-[13.5px] font-semibold text-brand-cyan transition-colors hover:text-white"
+                        >
+                          {item.cta}
+                          <span className="transition-transform group-hover:translate-x-0.5">
+                            &rarr;
+                          </span>
+                        </a>
+                      )
                     ) : null}
                   </div>
                 </div>
@@ -211,22 +199,22 @@ export default function PortfolioHome({ locale }: { locale: Locale }) {
             <Eyebrow>{t.footer.contact}</Eyebrow>
             <a
               href={`mailto:${CONTACT.email}`}
-              className="mt-4 block text-[20px] font-bold tracking-tight text-white transition-colors hover:text-brand-cyan sm:text-[24px]"
+              className="mt-2 inline-flex min-h-11 items-center text-[20px] font-bold tracking-tight text-white transition-colors hover:text-brand-cyan sm:text-[24px]"
             >
               {CONTACT.label}
             </a>
-            <p className="mt-5 text-[12.5px] text-white/35">{t.footer.builtWith}</p>
+            <p className="mt-5 text-[12.5px] text-white/55">{t.footer.builtWith}</p>
           </div>
 
           <div className="flex flex-col gap-5 sm:items-end">
             <nav className="flex items-center gap-6 text-[13px] text-white/60">
-              <a href="#pengalaman" className="transition-colors hover:text-white">
+              <a href="#pengalaman" className="py-3 -my-3 transition-colors hover:text-white">
                 {t.nav.experience}
               </a>
-              <a href="#tentang" className="transition-colors hover:text-white">
+              <a href="#tentang" className="py-3 -my-3 transition-colors hover:text-white">
                 {t.nav.about}
               </a>
-              <a href="#kontak" className="transition-colors hover:text-white">
+              <a href="#kontak" className="py-3 -my-3 transition-colors hover:text-white">
                 {t.nav.contact}
               </a>
             </nav>
@@ -240,7 +228,7 @@ export default function PortfolioHome({ locale }: { locale: Locale }) {
                   <Link
                     key={option.href}
                     href={option.href}
-                    className={`rounded px-2.5 py-1 text-[12px] font-semibold transition-colors ${
+                    className={`inline-flex min-h-10 items-center rounded px-2.5 py-1 text-[12px] font-semibold transition-colors ${
                       active ? "bg-brand-cyan text-black" : "text-white/55 hover:text-white"
                     }`}
                   >
@@ -253,7 +241,7 @@ export default function PortfolioHome({ locale }: { locale: Locale }) {
         </div>
 
         <div className="border-t border-white/5 py-6">
-          <p className="mx-auto max-w-6xl px-5 text-[12px] text-white/25">
+          <p className="mx-auto max-w-6xl px-5 text-[12px] text-white/45">
             &copy; {new Date().getFullYear()} {t.footer.rights}
           </p>
         </div>

@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { Component, useEffect, useRef, useState, type ReactNode } from "react";
 
 /**
  * Kartu identitas di pembuka halaman.
@@ -19,21 +19,28 @@ import { useEffect, useRef, useState } from "react";
  *    kartu digeser ke kanan, karena judulnya berada di sebelah kiri.
  *
  * Kartu 3D memang paling enak dilihat, tetapi ia membawa three.js dan mesin
- * fisika Rapier, jadi ada dua lapis penjagaan:
+ * fisika Rapier, jadi kartu 3D dimuat dengan dua lapis penjagaan:
  *
  * - Tampilan ringan (tali dan gambar kartu) tampil lebih dulu, sehingga pembuka
  *   tidak pernah kosong dan bentuk gantungnya tetap terbaca.
- * - Kartu 3D baru diunduh setelah area ini masuk layar dan peramban menganggur,
- *   dan tidak pernah diunduh sama sekali pada perangkat yang memang tidak cocok
- *   memuatnya: mode hemat data, jaringan 2G atau 3G, atau memori kecil.
+ * - Kartu 3D baru diunduh setelah area ini masuk layar dan peramban menganggur.
+ *
+ * Yang menentukan boleh atau tidaknya kartu 3D hanya satu hal: sanggup atau
+ * tidaknya peramban menggambar WebGL. Dugaan tentang koneksi dan memori
+ * (mode hemat data, jenis jaringan 2G atau 3G, jumlah memori) dulu dipakai untuk
+ * membatalkan kartu 3D, dan itu keliru: laporan seperti "2g" dan "3g" sering
+ * muncul di jaringan yang sebenarnya lancar, sehingga pengunjung hanya melihat
+ * gambar datar yang tidak bisa ditarik padahal perambannya mampu. Karena itu
+ * dugaan seperti itu dibuang, dan yang tersisa hanya kemampuan yang bisa diuji
+ * langsung.
  *
  * Kartu 3D tetap dipakai walau setelan sistem meminta gerak minimum. Kartu ini
  * bukan hiasan yang bergerak sendiri, melainkan benda yang memang bisa ditarik
  * dan diayun pengunjung, jadi mematikannya berarti menghilangkan bagian yang
  * bisa dimainkan. Efek gerak lain di halaman tetap menghormati setelan itu.
  *
- * Kartu 3D dipakai di semua lebar layar: di layar sempit kecepatan unduhnya
- * memang lebih terasa, tetapi sisanya dijaga oleh pemeriksaan perangkat di atas.
+ * Kartu 3D dipakai di semua lebar layar. Bila gambarannya gagal dimuat atau
+ * gagal digambar, tampilan ringan tetap dipakai dan halamannya tidak rusak.
  */
 
 const Lanyard = dynamic(() => import("../Lanyard/Lanyard"), { ssr: false });
@@ -83,26 +90,55 @@ function susunanKartu(
 
 type Ukuran = { lebar: number; tinggi: number };
 
-type Koneksi = {
-  saveData?: boolean;
-  effectiveType?: string;
-};
-
 function perangkatMampuMemuat3D(): boolean {
   if (typeof window === "undefined") return false;
 
-  // Gerak minimum tidak lagi mematikan kartu ini, lihat catatan di atas berkas.
-  // Yang tetap diperiksa hanya kemampuan perangkatnya.
-  const koneksi = (navigator as Navigator & { connection?: Koneksi }).connection;
-  const hematData = Boolean(koneksi?.saveData);
-  const jaringanLambat = ["slow-2g", "2g", "3g"].includes(
-    koneksi?.effectiveType ?? ""
-  );
+  // Gerak minimum tidak mematikan kartu ini, lihat catatan di atas berkas.
+  //
+  // Yang diperiksa hanya apakah peramban bisa menggambar WebGL. Konteks ujinya
+  // langsung dilepas lagi, karena peramban hanya mengizinkan beberapa konteks
+  // hidup bersamaan dan konteks uji yang menempel bisa mengambil jatah kanvas
+  // fisika yang sebenarnya.
+  try {
+    const uji = document.createElement("canvas");
+    const konteks =
+      uji.getContext("webgl2") || uji.getContext("webgl");
 
-  const memori = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
-  const memoriKecil = typeof memori === "number" && memori < 4;
+    if (!konteks) return false;
 
-  return !hematData && !jaringanLambat && !memoriKecil;
+    konteks.getExtension("WEBGL_lose_context")?.loseContext();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Penjaga galat untuk kartu 3D.
+ *
+ * Unduhan kartu 3D bisa gagal di tengah jalan, misalnya di jaringan yang lambat,
+ * dan kegagalan itu membuat komponennya meledak saat dirender. Tanpa penjaga,
+ * ledakan itu ikut merobohkan seluruh pembuka halaman. Penjaga ini mengubah
+ * kegagalan tersebut menjadi tampilan ringan, lalu memberi tahu pemanggilnya
+ * supaya bisa mencoba sekali lagi.
+ */
+class PenjagaKartu extends Component<
+  { fallback: ReactNode; onGagal: () => void; children: ReactNode },
+  { gagal: boolean }
+> {
+  state = { gagal: false };
+
+  static getDerivedStateFromError() {
+    return { gagal: true };
+  }
+
+  componentDidCatch() {
+    this.props.onGagal();
+  }
+
+  render() {
+    return this.state.gagal ? this.props.fallback : this.props.children;
+  }
 }
 
 export default function HeroCard() {
@@ -110,6 +146,10 @@ export default function HeroCard() {
   const [ukuran, setUkuran] = useState<Ukuran>({ lebar: 0, tinggi: 0 });
   const [lebarLayar, setLebarLayar] = useState(false);
   const [muatKartu3D, setMuatKartu3D] = useState(false);
+  // Setiap percobaan ulang menaikkan angka ini, dan angka itu dipakai sebagai
+  // `key` supaya kartu 3D dimuat ulang dari awal, bukan sekadar dirender lagi.
+  const [percobaan, setPercobaan] = useState(0);
+  const [gagalMuat, setGagalMuat] = useState(false);
 
   // Susunan lebar dipakai mulai titik henti `lg` Tailwind (1024px), sama dengan
   // perpindahan tata letak judul di PortfolioHome.
@@ -141,10 +181,11 @@ export default function HeroCard() {
   }, []);
 
   // Dipantau ulang saat lebar layar melintasi titik henti, karena susunan
-  // kartunya berbeda antara layar lebar dan layar sempit. Kanvasnya dibuat
-  // ulang saat itu terjadi, jadi kamera dan titik gantungnya pasti ikut berubah.
+  // kartunya berbeda antara layar lebar dan layar sempit, dan saat percobaan
+  // ulang setelah unduhannya gagal. Kanvasnya dibuat ulang setiap kali, jadi
+  // kamera dan titik gantungnya pasti ikut berubah.
   useEffect(() => {
-    if (!perangkatMampuMemuat3D()) {
+    if (!perangkatMampuMemuat3D() || gagalMuat) {
       setMuatKartu3D(false);
       return;
     }
@@ -192,7 +233,22 @@ export default function HeroCard() {
         else window.clearTimeout(idTertunda);
       }
     };
-  }, [lebarLayar]);
+  }, [lebarLayar, gagalMuat, percobaan]);
+
+  // Percobaan ulang hanya sekali. Kalau kegagalannya karena peramban memang tidak
+  // sanggup menggambar, mencoba lagi tidak akan menolong, jadi tampilan ringan
+  // dibiarkan berdiri tanpa membuat peramban bekerja berulang kali.
+  useEffect(() => {
+    if (!gagalMuat || percobaan >= 1) return;
+
+    const lanjut = window.setTimeout(() => {
+      setGagalMuat(false);
+      setMuatKartu3D(true);
+      setPercobaan((n) => n + 1);
+    }, 4000);
+
+    return () => window.clearTimeout(lanjut);
+  }, [gagalMuat, percobaan]);
 
   const ukuranSiap = ukuran.lebar > 1 && ukuran.tinggi > 1;
   // Lebar kartu sekitar 37,5 persen lebar kotak. Di layar lebar kartunya di
@@ -206,19 +262,28 @@ export default function HeroCard() {
 
   return (
     <div ref={wadah} className="relative z-0 h-full w-full">
-      {muatKartu3D && susunan ? (
-        <Lanyard
-          // `key` membuat kanvas dibuat ulang saat susunannya berubah, sehingga
-          // kamera dan titik gantungnya pasti ikut berubah.
-          key={`${susunan.geserX}-${susunan.anchorY}`}
-          position={susunan.position}
-          gravity={[0, -40, 0]}
-          anchorY={susunan.anchorY}
-          geserX={susunan.geserX}
-        />
-      ) : (
-        <GantunganRingan />
-      )}
+      <PenjagaKartu
+        // `key` yang berubah membuat penjaganya lahir ulang dalam keadaan sehat,
+        // sehingga percobaan berikutnya benar benar dimulai dari nol.
+        key={percobaan}
+        fallback={<GantunganRingan />}
+        onGagal={() => setGagalMuat(true)}
+      >
+        {muatKartu3D && susunan ? (
+          <Lanyard
+            // `key` membuat kanvas dibuat ulang saat susunannya berubah, sehingga
+            // kamera dan titik gantungnya pasti ikut berubah, dan saat percobaan
+            // ulang supaya pemuatannya dimulai dari awal lagi.
+            key={`${susunan.geserX}-${susunan.anchorY}-${percobaan}`}
+            position={susunan.position}
+            gravity={[0, -40, 0]}
+            anchorY={susunan.anchorY}
+            geserX={susunan.geserX}
+          />
+        ) : (
+          <GantunganRingan />
+        )}
+      </PenjagaKartu>
     </div>
   );
 }

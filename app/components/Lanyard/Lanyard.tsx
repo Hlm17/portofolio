@@ -49,9 +49,34 @@ export default function Lanyard({
   geserX = 0,
   ayun = 0.09
 }: LanyardProps) {
+  // Kanvas fisika ini tidak punya momen berhenti: selama frameloop-nya menyala,
+  // ia merender enam puluh kali per detik beserta seluruh perhitungan tali dan
+  // kartunya. Di ponsel itu terus berjalan walau pembukanya sudah jauh di atas
+  // layar dan pengunjung sedang membaca bagian lain halaman, membakar baterai
+  // tanpa ada yang melihat hasilnya. Pengamat di bawah menghentikan loop itu
+  // begitu pembukanya keluar dari layar, dan menyalakannya lagi saat kembali.
+  const wadah = useRef<HTMLDivElement>(null);
+  const [terlihat, setTerlihat] = useState(true);
+
+  useEffect(() => {
+    const el = wadah.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+
+    const pengamat = new IntersectionObserver(
+      (entri) => setTerlihat(entri.some((entri) => entri.isIntersecting)),
+      { rootMargin: "200px" }
+    );
+    pengamat.observe(el);
+    return () => pengamat.disconnect();
+  }, []);
+
   return (
-    <div className="relative z-[0] w-full h-full flex justify-center items-center transform scale-100 origin-center">
+    <div
+      ref={wadah}
+      className="relative z-[0] w-full h-full flex justify-center items-center transform scale-100 origin-center"
+    >
       <Canvas
+        frameloop={terlihat ? "always" : "never"}
         // Rotasi nol ditulis apa adanya, bukan tanpa nilai. Tanpa rotasi, kamera
         // otomatis diarahkan memandang titik nol, sehingga kamera yang digeser
         // ke samping justru berputar dan isi layar kembali ke tengah. Dengan
@@ -267,11 +292,29 @@ function Band({ maxSpeed = 50, minSpeed = 0, anchorY, geserX, ayun }: BandProps)
         if (!ref.current.lerped || !Number.isFinite(ref.current.lerped.x) || !Number.isFinite(posisi.x)) {
           ref.current.lerped = new THREE.Vector3().copy(posisi);
         }
-        const clampedDistance = Math.max(0.1, Math.min(1, ref.current.lerped.distanceTo(ref.current.translation())));
-        ref.current.lerped.lerp(
-          ref.current.translation(),
-          delta * (minSpeed + clampedDistance * (maxSpeed - minSpeed))
-        );
+
+        const jarak = ref.current.lerped.distanceTo(posisi);
+
+        // Titik ayun yang sudah menyimpang jauh dari badannya langsung
+        // diselaraskan kembali, bukan dikejar pelan pelan. Ini yang menjaga
+        // talinya tetap tampak setelah frame yang panjang, misalnya saat tab
+        // kembali aktif atau saat perangkat tertinggal sesaat.
+        if (!Number.isFinite(jarak) || jarak > 2) {
+          ref.current.lerped.copy(posisi);
+        } else {
+          const clampedDistance = Math.max(0.1, Math.min(1, jarak));
+          // Faktor perpindahannya dibatasi paling banyak satu. Tanpa batas ini,
+          // frame yang lebih lambat dari 50 gambar per detik membuat nilainya
+          // lebih dari satu, sehingga titiknya melewati sasaran dan jaraknya
+          // makin jauh setiap frame. Sekali itu terjadi, titiknya melejit ke
+          // angka yang sangat besar dan talinya lenyap dari layar walau kartunya
+          // tetap menggantung normal.
+          const faktor = Math.min(
+            1,
+            delta * (minSpeed + clampedDistance * (maxSpeed - minSpeed))
+          );
+          ref.current.lerped.lerp(posisi, faktor);
+        }
       });
       curve.points[0].copy(j3.current.translation());
       curve.points[1].copy(j2.current.lerped);
@@ -281,8 +324,17 @@ function Band({ maxSpeed = 50, minSpeed = 0, anchorY, geserX, ayun }: BandProps)
       // sah. Bila ada satu saja yang tidak, gambar tali sebelumnya dibiarkan
       // utuh, jadi talinya tidak pernah berubah menjadi rangkaian tak terlihat.
       const titikTali = curve.getPoints(32);
+      // Nilai yang sah bukan hanya yang bukan NaN, tetapi juga yang masih masuk
+      // akal: titik yang nilainya membengkak ke angka raksasa tetap "sah" bagi
+      // Number.isFinite, padahal talinya sudah tidak lagi berada di layar.
       const taliSah = titikTali.every(
-        p => Number.isFinite(p.x) && Number.isFinite(p.y) && Number.isFinite(p.z)
+        p =>
+          Number.isFinite(p.x) &&
+          Number.isFinite(p.y) &&
+          Number.isFinite(p.z) &&
+          Math.abs(p.x) < 100 &&
+          Math.abs(p.y) < 100 &&
+          Math.abs(p.z) < 100
       );
       if (taliSah) band.current.geometry.setPoints(titikTali);
       ang.copy(card.current.angvel());
