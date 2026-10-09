@@ -6,6 +6,7 @@ import HeroCard from "../HeroCard/HeroCard";
 import RotatingText from "../RotatingText/RotatingText";
 import ScrollVelocity from "../ScrollVelocity/ScrollVelocity";
 import LangAttribute from "./LangAttribute";
+import TombolBahasa from "../TombolBahasa";
 import formal from "../img/formalmirrored.jpg";
 import { CONTACT, dictionary, type Locale } from "./dictionary";
 
@@ -219,24 +220,10 @@ export default function PortfolioHome({ locale }: { locale: Locale }) {
               </a>
             </nav>
 
-            <div className="flex items-center gap-0.5 rounded-md border border-white/15 p-0.5">
-              {t.switchTo.map((option) => {
-                const active =
-                  (option.label === "ID" && locale === "id") ||
-                  (option.label === "EN" && locale === "en");
-                return (
-                  <Link
-                    key={option.href}
-                    href={option.href}
-                    className={`inline-flex min-h-10 items-center rounded px-2.5 py-1 text-[12px] font-semibold transition-colors ${
-                      active ? "bg-brand-cyan text-black" : "text-white/55 hover:text-white"
-                    }`}
-                  >
-                    {option.label}
-                  </Link>
-                );
-              })}
-            </div>
+            <TombolBahasa
+              aktif={locale}
+              opsi={t.switchTo.map((option) => ({ kode: option.code, href: option.href }))}
+            />
           </div>
         </div>
 

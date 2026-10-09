@@ -60,7 +60,10 @@ export type Dictionary = {
     rights: string;
     contact: string;
   };
-  switchTo: { href: string; label: string }[];
+  // `code` dipakai tombol pilih bahasa untuk menyimpan pilihan pengunjung ke
+  // cookie, bukan hanya memindahkan halaman. Tanpa itu, pengunjung yang memilih
+  // Bahasa Indonesia akan dilempar lagi ke versi Inggris oleh pendeteksi negara.
+  switchTo: { code: Locale; href: string; label: string }[];
 };
 
 const PRODUCT_HREF = "https://ingetdiwa.hilmi.work";
@@ -70,7 +73,14 @@ const CONTACT_EMAIL = "mhilmirajwandhika@gmail.com";
 // akan terus bertambah. Di sana pengunjung memilih kartu game dulu, baru
 // laporannya terbuka. Tautan Notion mentahnya tinggal di halaman itu, bukan lagi
 // di kartu profil ini.
-const GAME_REPORTS_HREF = "/gametester";
+//
+// Halaman itu punya dua versi bahasa, sama seperti halaman profil, jadi
+// alamatnya ikut menyesuaikan bahasa yang sedang dibuka. Kartu di halaman Inggris
+// tidak boleh melempar pengunjung kembali ke halaman Bahasa Indonesia.
+const GAME_REPORTS_HREF: Record<Locale, string> = {
+  id: "/gametester",
+  en: "/en/gametester",
+};
 
 export const dictionary: Record<Locale, Dictionary> = {
   id: {
@@ -107,7 +117,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             "Menguji game Age of Crowns dari sisi pemain: menelusuri alur permainan, mencari perilaku yang menyimpang dari yang seharusnya, lalu menyusun laporan yang bisa langsung dikerjakan tim pengembang. Setiap temuan saya lengkapi dengan langkah pengulangan, bukti tangkapan layar, dan tingkat keparahan.",
           meta: "Age of Crowns, laporan 1 dan 5 Oktober 2026",
           cta: "Buka halaman game tester",
-          href: GAME_REPORTS_HREF,
+          href: GAME_REPORTS_HREF.id,
         },
       ],
     },
@@ -126,8 +136,8 @@ export const dictionary: Record<Locale, Dictionary> = {
       contact: "Hubungi saya",
     },
     switchTo: [
-      { href: "/", label: "ID" },
-      { href: "/en", label: "EN" },
+      { code: "id", href: "/", label: "ID" },
+      { code: "en", href: "/en", label: "EN" },
     ],
   },
 
@@ -165,7 +175,7 @@ export const dictionary: Record<Locale, Dictionary> = {
             "Testing the game Age of Crowns from a player's side: walking through the play flow, hunting for behaviour that deviates from what should happen, then writing reports the development team can act on straight away. Every finding comes with reproduction steps, screenshots, and a severity.",
           meta: "Age of Crowns, reports dated 1 and 5 October 2026",
           cta: "Open the game tester page",
-          href: GAME_REPORTS_HREF,
+          href: GAME_REPORTS_HREF.en,
         },
       ],
     },
@@ -184,8 +194,8 @@ export const dictionary: Record<Locale, Dictionary> = {
       contact: "Get in touch",
     },
     switchTo: [
-      { href: "/", label: "ID" },
-      { href: "/en", label: "EN" },
+      { code: "id", href: "/", label: "ID" },
+      { code: "en", href: "/en", label: "EN" },
     ],
   },
 };

@@ -1,36 +1,38 @@
 import Link from "next/link";
-import { CONTACT_EMAIL, MAIN_SITE_URL } from "../data";
+import { CONTACT_EMAIL, MAIN_SITE_URL, gameTesterPath, type Locale } from "../data";
+import { COPY } from "../copy";
 
-export default function ReportFooter() {
+export default function ReportFooter({ locale }: { locale: Locale }) {
+  const t = COPY[locale];
+
   return (
     <footer className="border-t border-white/10">
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 sm:grid-cols-[1.4fr_1fr]">
         <div>
-          <p className="text-[13px] font-semibold text-white">Game tester</p>
+          <p className="text-[13px] font-semibold text-white">{t.footer.title}</p>
           <p className="mt-4 max-w-md text-[13px] leading-relaxed text-white/55">
-            Kumpulan laporan yang saya tulis setelah memainkan game-nya sendiri,
-            lengkap dengan langkah pengulangan dan bukti tangkapan layar.
+            {t.footer.body}
           </p>
         </div>
 
         <div className="sm:justify-self-end">
-          <p className="text-[13px] font-semibold text-white">Tautan</p>
+          <p className="text-[13px] font-semibold text-white">{t.footer.links}</p>
           <ul className="mt-4 space-y-2.5 text-[13px] text-white/55">
             <li>
               <Link
-                href="/gametester"
+                href={gameTesterPath(locale)}
                 className="inline-flex min-h-9 items-center transition-colors hover:text-white"
               >
-                Daftar game
+                {t.footer.all}
               </Link>
             </li>
             <li>
-              <a
-                href={MAIN_SITE_URL}
+              <Link
+                href={locale === "en" ? "/en" : "/"}
                 className="inline-flex min-h-9 items-center transition-colors hover:text-white"
               >
-                Profil hilmi.work
-              </a>
+                {t.footer.profile}
+              </Link>
             </li>
             <li>
               <a
@@ -46,7 +48,7 @@ export default function ReportFooter() {
 
       <div className="border-t border-white/5 py-6">
         <p className="mx-auto max-w-6xl px-5 text-[12px] text-white/50">
-          Muhammad Hilmi Rajwandhika. Laporan lengkap disimpan di Notion.
+          {t.footer.rights}
         </p>
       </div>
     </footer>
