@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import {
+  DEFAULT_DIAL_CODE,
+  MAX_PHONE_DIGITS,
+  MIN_PHONE_DIGITS,
   PAKASIR_API_BASE,
   SUBSCRIPTION_AMOUNT,
   buildOrderId,
-  normalizePhone,
+  parsePhone,
 } from "@/app/ingetdiwa/lib/pakasir";
 import { SITE_URL } from "@/app/ingetdiwa/config";
 
@@ -18,6 +21,10 @@ import { SITE_URL } from "@/app/ingetdiwa/config";
  * order_id memakai format yang sama dengan bot WAbot (`SUB-<phone>-<YYYYMM>`), sehingga
  * webhook Pakasir yang menunjuk ke server bot otomatis mengaktifkan langganan tanpa
  * peduli user membayar lewat chat atau lewat website.
+ *
+ * Halaman sukses (/ingetdiwa/langganan/sukses) memakai order_id yang sama untuk
+ * menitipkan satu permintaan konfirmasi lewat /api/pakasir/confirm, jadi pembeli tetap
+ * terdaftar walau webhook Pakasir belum sempat sampai.
  */
 
 export const dynamic = "force-dynamic";
@@ -54,19 +61,32 @@ export async function POST(request: Request) {
     );
   }
 
-  let body: { phone?: string } | null = null;
+  let body: { phone?: string; dialCode?: string } | null = null;
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ message: "Format permintaan tidak valid." }, { status: 400 });
   }
 
-  const phone = normalizePhone(body?.phone ?? "");
-  if (!/^62\d{8,14}$/.test(phone)) {
-    return NextResponse.json(
-      { message: "Nomor WhatsApp tidak valid. Contoh: 08197494871." },
-      { status: 400 }
-    );
+  // `phone` boleh nomor lokal (0819…) maupun nomor lengkap dengan kode negara.
+  // `dialCode` datang dari pilihan kode negara di formulir checkout.
+  const dialCode = String(body?.dialCode || DEFAULT_DIAL_CODE).replace(/\D/g, "");
+  if (!dialCode) {
+    return NextResponse.json({ message: "Kode negara tidak valid." }, { status: 400 });
+  }
+
+  const hasil = parsePhone(body?.phone ?? "", dialCode);
+  const phone = hasil.digits;
+  if (!hasil.valid) {
+    const contoh = hasil.entry?.contoh ?? "8123456789";
+    const label = hasil.entry?.label ?? "negara yang dipilih";
+    const pesan =
+      hasil.problem === "other-country"
+        ? `Nomor itu terlihat memakai kode negara +${hasil.otherCountry}, bukan +${dialCode}. Periksa kembali kode negara yang dipilih.`
+        : hasil.problem === "wrong-prefix"
+          ? `Nomor itu belum sesuai untuk ${label}. Contoh yang benar: +${dialCode} ${contoh}. Bila nomor Anda dari negara lain, ubah kode negaranya lebih dulu.`
+          : `Nomor WhatsApp tidak valid. Tulis nomor dengan kode negara ${dialCode} (contoh: +${dialCode} ${contoh}), ${MIN_PHONE_DIGITS} sampai ${MAX_PHONE_DIGITS} angka tanpa angka 0 di depan.`;
+    return NextResponse.json({ message: pesan }, { status: 400 });
   }
 
   const slug = process.env.PAKASIR_SLUG;
