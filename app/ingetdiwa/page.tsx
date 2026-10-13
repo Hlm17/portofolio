@@ -284,14 +284,9 @@ export default function IngetDiwaPage() {
 
       {/* Ajakan */}
       <section className="relative isolate overflow-hidden border-t border-white/10">
-        <div className="absolute inset-0 opacity-70">
-          <Aurora
-            colorStops={["#3A29FF", "#FF94B4", "#FF3232"]}
-            blend={0.7}
-            amplitude={0.45}
-            speed={0.3}
-          />
-        </div>
+        {/* Bagian ajakan cukup memakai aurora statis (kelas di globals.css):
+            satu kanvas WebGL di pembuka sudah cukup untuk halaman ini. */}
+        <div className="absolute inset-0 aurora-statis aurora-statis-kuat opacity-70" />
         <div className="relative mx-auto max-w-3xl px-5 py-24 text-center">
           <h2 className="text-[32px] font-black leading-tight tracking-tight sm:text-[42px]">
             Jangan lupa hal penting lagi

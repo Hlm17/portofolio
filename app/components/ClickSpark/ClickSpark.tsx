@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { gerakDiizinkan } from '../motionPref';
 
 interface ClickSparkProps {
@@ -32,43 +32,14 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
   children
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const kotakRef = useRef<HTMLDivElement>(null);
   const sparksRef = useRef<Spark[]>([]);
-  const startTimeRef = useRef<number | null>(null);
   // Dipakai supaya loop gambar bisa dibangunkan lagi dari penanganan klik.
   const bangunkanRef = useRef<() => void>(() => {});
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const parent = canvas.parentElement;
-    if (!parent) return;
-
-    let resizeTimeout: NodeJS.Timeout;
-
-    const resizeCanvas = () => {
-      const { width, height } = parent.getBoundingClientRect();
-      if (canvas.width !== width || canvas.height !== height) {
-        canvas.width = width;
-        canvas.height = height;
-      }
-    };
-
-    const handleResize = () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(resizeCanvas, 100);
-    };
-
-    const ro = new ResizeObserver(handleResize);
-    ro.observe(parent);
-
-    resizeCanvas();
-
-    return () => {
-      ro.disconnect();
-      clearTimeout(resizeTimeout);
-    };
-  }, []);
+  // Kanvas baru dibuat saat percikan pertama benar-benar dibutuhkan: sebelum ada
+  // klik, halaman tidak menyimpan satu pun elemen canvas tambahan, dan bagi
+  // pengunjung yang meminta gerak minimum kanvasnya tidak pernah dibuat.
+  const [kanvasSiap, setKanvasSiap] = useState(false);
 
   const easeFunc = useCallback(
     (t: number) => {
@@ -87,21 +58,34 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
   );
 
   useEffect(() => {
-    // Percikan hanya hiasan, jadi tidak perlu digambar sama sekali bagi
-    // pengunjung yang meminta gerak minimum.
-    if (!gerakDiizinkan()) return;
+    if (!kanvasSiap) return;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const parent = canvas.parentElement;
+    if (!parent) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     let animationId = 0;
+    let resizeTimeout: NodeJS.Timeout;
+
+    const resizeCanvas = () => {
+      const { width, height } = parent.getBoundingClientRect();
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+    };
+
+    const ro = new ResizeObserver(() => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(resizeCanvas, 100);
+    });
+    ro.observe(parent);
+    resizeCanvas();
 
     const draw = (timestamp: number) => {
-      if (!startTimeRef.current) {
-        startTimeRef.current = timestamp;
-      }
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       sparksRef.current = sparksRef.current.filter((spark: Spark) => {
@@ -147,17 +131,28 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
       }
     };
 
+    // Percikan dari klik pertama sudah menunggu saat kanvas baru terpasang.
+    if (sparksRef.current.length > 0) {
+      animationId = requestAnimationFrame(draw);
+    }
+
     return () => {
+      ro.disconnect();
+      clearTimeout(resizeTimeout);
       cancelAnimationFrame(animationId);
       animationId = 0;
       bangunkanRef.current = () => {};
     };
-  }, [sparkColor, sparkSize, sparkRadius, sparkCount, duration, easeFunc, extraScale]);
+  }, [kanvasSiap, sparkColor, sparkSize, sparkRadius, sparkCount, duration, easeFunc, extraScale]);
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement> | React.TouchEvent<HTMLDivElement>): void => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
+    // Percikan hanya hiasan, jadi tidak perlu dibuat sama sekali bagi pengunjung
+    // yang meminta gerak minimum.
+    if (!gerakDiizinkan()) return;
+
+    const kotak = kotakRef.current;
+    if (!kotak) return;
+    const rect = kotak.getBoundingClientRect();
 
     let x = 0;
     let y = 0;
@@ -182,12 +177,13 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
     }));
 
     sparksRef.current.push(...newSparks);
-    bangunkanRef.current();
+    if (kanvasSiap) bangunkanRef.current();
+    else setKanvasSiap(true);
   };
 
   return (
-    <div className="relative h-full w-full" onMouseDown={handleClick} onTouchStart={handleClick}>
-      <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" />
+    <div ref={kotakRef} className="relative h-full w-full" onMouseDown={handleClick} onTouchStart={handleClick}>
+      {kanvasSiap ? <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" /> : null}
       {children}
     </div>
   );

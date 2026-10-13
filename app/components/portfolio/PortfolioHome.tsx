@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import Aurora from "../Aurora/Aurora";
 import ClickSpark from "../ClickSpark/ClickSpark";
 import HeroCard from "../HeroCard/HeroCard";
 import RotatingText from "../RotatingText/RotatingText";
@@ -9,8 +8,6 @@ import LangAttribute from "./LangAttribute";
 import TombolBahasa from "../TombolBahasa";
 import formal from "../img/formalmirrored.jpg";
 import { CONTACT, dictionary, type Locale } from "./dictionary";
-
-const AURORA_COLORS = ["#3A29FF", "#FF94B4", "#FF3232"];
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
@@ -29,9 +26,10 @@ export default function PortfolioHome({ locale }: { locale: Locale }) {
           tepat dari tepi paling atas halaman dan judulnya duduk di sebelahnya,
           baik di layar lebar maupun di ponsel. */}
       <section className="relative isolate flex min-h-svh items-center overflow-hidden">
-        <div className="absolute inset-0">
-          <Aurora colorStops={AURORA_COLORS} blend={0.5} amplitude={0.23} speed={0.5} />
-        </div>
+        {/* Latar aurora statis (kelas di globals.css), bukan kanvas WebGL:
+            halaman ini sudah membawa satu kanvas hidup untuk kartu 3D, dan
+            latar dekoratif tidak perlu menjadi yang kedua. */}
+        <div className="absolute inset-0 aurora-statis" />
 
         <div className="absolute inset-0 z-0 lg:left-1/2">
           <HeroCard />
