@@ -34,13 +34,22 @@ export const runtime = "nodejs";
 /** Alamat asal dasbor (tanpa garis miring di ujung). */
 const ASAL = (process.env.WABOT_DASHBOARD_URL || "https://wabot.mhr.web.id").replace(/\/+$/, "");
 
-/** Header balasan yang diteruskan apa adanya ke peramban. */
+/**
+ * Header balasan yang diteruskan apa adanya ke peramban.
+ *
+ * Bukan hanya yang menentukan isi halaman, tetapi juga pengaman yang dipasang
+ * server bot: tanpa ini, halaman yang sama akan lebih longgar di domain produk
+ * daripada di pintu tunnelnya sendiri.
+ */
 const HEADER_DITERUSKAN = [
   "content-type",
   "www-authenticate", // memicu kotak sandi peramban
   "cache-control",
-  "x-robots-tag",
+  "x-robots-tag", // noindex, nofollow
   "retry-after", // diisi server bot saat membatasi percobaan gagal (429)
+  "referrer-policy", // no-referrer: alamat dasbor tidak menyeberang ke tautan luar
+  "x-content-type-options",
+  "content-security-policy", // default-src 'none' dari server bot
 ];
 
 /** Halaman sederhana saat server bot tidak terjangkau. */
