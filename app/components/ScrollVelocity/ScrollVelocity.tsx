@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useLayoutEffect, useState } from 'react';
+import React, { useEffect, useRef, useLayoutEffect, useState } from 'react';
 import {
   motion,
   useScroll,
@@ -131,8 +131,27 @@ export const ScrollVelocity: React.FC<ScrollVelocityProps> = ({
       return `${wrap(-copyWidth, 0, v)}px`;
     });
 
+    // Pita berjalan ini punya loop sendiri yang tidak pernah berhenti, jadi di
+    // ponsel ia terus menghitung geseran walau pita itu sudah jauh dari layar.
+    // Pengamat ini mematikan perhitungannya saat tidak terlihat dan
+    // menyalakannya lagi saat masuk layar; posisinya tidak melompat karena
+    // frame-nya tetap berjalan, hanya isinya yang dilewati.
+    const [terlihat, setTerlihat] = useState(true);
+    useEffect(() => {
+      const el = containerRef.current;
+      if (!el || typeof IntersectionObserver === 'undefined') return;
+      const pengamat = new IntersectionObserver(
+        entri => setTerlihat(entri.some(entri => entri.isIntersecting)),
+        { rootMargin: '120px' }
+      );
+      pengamat.observe(el);
+      return () => pengamat.disconnect();
+    }, [containerRef]);
+
     const directionFactor = useRef<number>(1);
     useAnimationFrame((t, delta) => {
+      if (!terlihat) return;
+
       let moveBy = directionFactor.current * baseVelocity * (delta / 1000);
 
       if (velocityFactor.get() < 0) {

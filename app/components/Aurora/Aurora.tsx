@@ -132,7 +132,10 @@ export default function Aurora(props: AuroraProps) {
     const renderer = new Renderer({
       alpha: true,
       premultipliedAlpha: true,
-      antialias: true
+      // Aurora ini hanya gradien lembut yang menutupi seluruh layar: tidak ada
+      // garis tepi yang perlu dihaluskan, jadi MSAA hanya membuang tenaga GPU
+      // (paling terasa di ponsel dan di halaman yang memakai dua kanvas).
+      antialias: false
     });
     const gl = renderer.gl;
     gl.clearColor(0, 0, 0, 0);
@@ -193,6 +196,13 @@ export default function Aurora(props: AuroraProps) {
     );
     pengamat.observe(ctn);
 
+    // Warna tidak pernah berubah dari frame ke frame, jadi hasil konversinya
+    // disimpan dan dihitung ulang hanya saat daftar warnanya benar-benar
+    // berganti. Sebelumnya tiga objek Color dibuat ulang enam puluh kali per
+    // detik dan langsung dibuang begitu saja.
+    let stopsTerakhir: string[] | null = null;
+    let warnaSiap: number[][] = colorStopsArray;
+
     const gambarKerangka = (t: number) => {
       const { time = t * 0.01, speed = 1.0 } = propsRef.current;
       if (program) {
@@ -200,10 +210,14 @@ export default function Aurora(props: AuroraProps) {
         program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? 1.0;
         program.uniforms.uBlend.value = propsRef.current.blend ?? blend;
         const stops = propsRef.current.colorStops ?? colorStops;
-        program.uniforms.uColorStops.value = stops.map((hex: string) => {
-          const c = new Color(hex);
-          return [c.r, c.g, c.b];
-        });
+        if (stops !== stopsTerakhir) {
+          stopsTerakhir = stops;
+          warnaSiap = stops.map((hex: string) => {
+            const c = new Color(hex);
+            return [c.r, c.g, c.b];
+          });
+        }
+        program.uniforms.uColorStops.value = warnaSiap;
         renderer.render({ scene: mesh });
       }
     };

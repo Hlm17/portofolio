@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Aurora from "../components/Aurora/Aurora";
-import ScrollVelocity from "../components/ScrollVelocity/ScrollVelocity";
 import SiteNav from "./components/SiteNav";
 import SiteFooter from "./components/SiteFooter";
 import ChatDemo from "./components/ChatDemo";
@@ -70,16 +69,6 @@ const abilities = [
     title: "Tanpa aplikasi tambahan",
     body: "Tidak ada unduhan, tidak ada kata sandi, tidak ada email. Cukup nomor WhatsApp yang sudah Anda pakai setiap hari.",
   },
-];
-
-const examples = [
-  "jemput adik jam 3 sore",
-  "rapat tanggal 25 september jam 10 pagi",
-  "matiin kompor 30 menit lagi",
-  "besok waktu buka puasa ingetin beli es",
-  "nanti malam abis isya telepon bos",
-  "senin bayar utang, eh gajadi, selasa aja",
-  "ingetin 1 jam sekali",
 ];
 
 const faqs = [
@@ -178,19 +167,6 @@ export default function IngetDiwaPage() {
             <ChatDemo />
           </div>
         </div>
-      </section>
-
-      {/* Contoh kalimat */}
-      <section className="border-y border-white/10 py-8">
-        <p className="mx-auto max-w-6xl px-5 pb-5 text-[12px] uppercase tracking-widest text-white/55">
-          Kalimat yang sudah dimengerti bot
-        </p>
-        <ScrollVelocity
-          texts={examples}
-          velocity={45}
-          numCopies={3}
-          className="text-[22px] font-semibold tracking-tight text-white/70 sm:text-[28px]"
-        />
       </section>
 
       {/* Cara kerja */}
