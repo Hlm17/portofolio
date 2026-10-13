@@ -12,7 +12,7 @@ export default function SiteFooter() {
             </span>
             <span className="text-[17px] font-bold tracking-tight text-white">{PRODUCT_NAME}</span>
           </div>
-          <p className="mt-4 max-w-xs text-[13px] leading-relaxed text-white/45">
+          <p className="mt-4 max-w-xs text-[13px] leading-relaxed text-white/55">
             Asisten pengingat dan daftar tugas harian yang berjalan sepenuhnya di dalam
             WhatsApp.
           </p>
@@ -20,26 +20,26 @@ export default function SiteFooter() {
 
         <div>
           <p className="text-[13px] font-semibold text-white">Produk</p>
-          <ul className="mt-4 space-y-2.5 text-[13px] text-white/45">
+          <ul className="mt-4 space-y-2.5 text-[13px] text-white/55">
             <li>
-              <a href="/ingetdiwa#cara-kerja" className="transition-colors hover:text-white">
+              <a href="/ingetdiwa#cara-kerja" className="inline-flex min-h-9 items-center transition-colors hover:text-white">
                 Cara kerja
               </a>
             </li>
             <li>
-              <a href="/ingetdiwa#harga" className="transition-colors hover:text-white">
+              <a href="/ingetdiwa#harga" className="inline-flex min-h-9 items-center transition-colors hover:text-white">
                 Harga
               </a>
             </li>
             <li>
-              <Link href="/ingetdiwa/langganan" className="transition-colors hover:text-white">
+              <Link href="/ingetdiwa/langganan" className="inline-flex min-h-9 items-center transition-colors hover:text-white">
                 Halaman pembayaran
               </Link>
             </li>
             <li>
               <a
                 href={MAIN_SITE_URL}
-                className="transition-colors hover:text-white"
+                className="inline-flex min-h-9 items-center transition-colors hover:text-white"
               >
                 hilmi.work
               </a>
@@ -49,29 +49,29 @@ export default function SiteFooter() {
 
         <div>
           <p className="text-[13px] font-semibold text-white">Bantuan</p>
-          <ul className="mt-4 space-y-2.5 text-[13px] text-white/45">
+          <ul className="mt-4 space-y-2.5 text-[13px] text-white/55">
             <li>
               <a
                 href={WA_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="transition-colors hover:text-white"
+                className="inline-flex min-h-9 items-center transition-colors hover:text-white"
               >
                 WhatsApp {BOT_PHONE_DISPLAY}
               </a>
             </li>
             <li>
-              <a href={`mailto:${SUPPORT_EMAIL}`} className="transition-colors hover:text-white">
+              <a href={`mailto:${SUPPORT_EMAIL}`} className="inline-flex min-h-9 items-center transition-colors hover:text-white">
                 {SUPPORT_EMAIL}
               </a>
             </li>
             <li>
-              <Link href="/ingetdiwa/syarat" className="transition-colors hover:text-white">
+              <Link href="/ingetdiwa/syarat" className="inline-flex min-h-9 items-center transition-colors hover:text-white">
                 Syarat dan ketentuan
               </Link>
             </li>
             <li>
-              <Link href="/ingetdiwa/privasi" className="transition-colors hover:text-white">
+              <Link href="/ingetdiwa/privasi" className="inline-flex min-h-9 items-center transition-colors hover:text-white">
                 Kebijakan privasi
               </Link>
             </li>
@@ -80,7 +80,7 @@ export default function SiteFooter() {
       </div>
 
       <div className="border-t border-white/5 py-6">
-        <p className="mx-auto max-w-6xl px-5 text-[12px] text-white/30">
+        <p className="mx-auto max-w-6xl px-5 text-[12px] text-white/50">
           {PRODUCT_NAME} oleh Muhammad Hilmi Rajwandhika. Pembayaran diproses melalui
           Pakasir.
         </p>

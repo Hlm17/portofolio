@@ -72,7 +72,7 @@ export default function SyaratPage() {
         <h1 className="text-[32px] font-black leading-tight tracking-tight sm:text-[38px]">
           Syarat dan ketentuan
         </h1>
-        <p className="mt-3 text-[12.5px] text-white/35">
+        <p className="mt-3 text-[12.5px] text-white/55">
           Berlaku untuk layanan {PRODUCT_NAME}. Terakhir diperbarui 30 September 2026.
         </p>
 

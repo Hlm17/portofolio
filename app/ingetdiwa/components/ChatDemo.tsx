@@ -64,7 +64,7 @@ function renderLine(line: string, keyPrefix: number): ReactNode[] {
           );
         }
         return (
-          <s key={key} className="text-white/45">
+          <s key={key} className="text-white/55">
             {teks}
           </s>
         );
@@ -115,7 +115,7 @@ export default function ChatDemo() {
           ))}
         </div>
       </div>
-      <p className="mt-4 text-[12px] text-white/35">
+      <p className="mt-4 text-[12px] text-white/55">
         Percakapan sebenarnya dengan bot. Tugas tanpa jam tetap tersimpan di daftar Anda.
       </p>
     </div>

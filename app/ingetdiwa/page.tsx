@@ -164,11 +164,11 @@ export default function IngetDiwaPage() {
                 { label: "Metode bayar", value: "QRIS", note: "semua dompet digital" },
               ].map((item) => (
                 <div key={item.label}>
-                  <dt className="text-[11px] uppercase tracking-widest text-white/35">
+                  <dt className="text-[11px] uppercase tracking-widest text-white/55">
                     {item.label}
                   </dt>
                   <dd className="mt-2 text-[20px] font-bold tracking-tight">{item.value}</dd>
-                  <dd className="text-[12px] text-white/40">{item.note}</dd>
+                  <dd className="text-[12px] text-white/55">{item.note}</dd>
                 </div>
               ))}
             </dl>
@@ -182,7 +182,7 @@ export default function IngetDiwaPage() {
 
       {/* Contoh kalimat */}
       <section className="border-y border-white/10 py-8">
-        <p className="mx-auto max-w-6xl px-5 pb-5 text-[12px] uppercase tracking-widest text-white/35">
+        <p className="mx-auto max-w-6xl px-5 pb-5 text-[12px] uppercase tracking-widest text-white/55">
           Kalimat yang sudah dimengerti bot
         </p>
         <ScrollVelocity
@@ -245,13 +245,13 @@ export default function IngetDiwaPage() {
             </div>
 
             <div className="rounded-2xl border border-white/15 bg-white/[0.03] p-8">
-              <p className="text-[13px] uppercase tracking-widest text-white/40">
+              <p className="text-[13px] uppercase tracking-widest text-white/55">
                 Langganan bulanan
               </p>
               <p className="mt-4 text-[46px] font-black leading-none tracking-tight">
                 {PRICE_LABEL}
               </p>
-              <p className="mt-2 text-[13px] text-white/45">untuk {PERIOD_DAYS} hari</p>
+              <p className="mt-2 text-[13px] text-white/55">untuk {PERIOD_DAYS} hari</p>
 
               <ul className="mt-8 space-y-3 border-t border-white/10 pt-7 text-[14px] text-white/70">
                 {[
@@ -274,7 +274,7 @@ export default function IngetDiwaPage() {
               >
                 Lanjut ke pembayaran
               </Link>
-              <p className="mt-4 text-[12px] leading-relaxed text-white/35">
+              <p className="mt-4 text-[12px] leading-relaxed text-white/55">
                 Membayar dengan kode QRIS atau tautan pembayaran setelah Anda mengetik
                 &ldquo;daftar&rdquo; di chat.
               </p>
@@ -293,7 +293,7 @@ export default function IngetDiwaPage() {
           <div className="mt-12">
             {faqs.map((faq) => (
               <details key={faq.q} className="group border-b border-white/10 py-5">
-                <summary className="flex cursor-pointer list-none items-start justify-between gap-6 text-[15px] font-semibold text-white">
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-6 py-3 text-[15px] font-semibold text-white">
                   {faq.q}
                   <span className="mt-0.5 shrink-0 text-brand-cyan transition-transform group-open:rotate-45">
                     +

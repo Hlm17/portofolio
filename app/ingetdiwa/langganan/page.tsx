@@ -25,7 +25,7 @@ export default function LanggananPage() {
       <SiteNav />
 
       <main className="mx-auto max-w-5xl px-5 py-16">
-        <nav className="text-[12px] text-white/35">
+        <nav className="text-[12px] text-white/55">
           <Link href="/ingetdiwa" className="transition-colors hover:text-white">
             IngetDiWA
           </Link>

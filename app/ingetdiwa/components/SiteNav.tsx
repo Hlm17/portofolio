@@ -13,7 +13,7 @@ export default function SiteNav() {
   return (
     <header className="sticky top-0 z-50 border-b border-white/10 bg-brand-ink/70 backdrop-blur-xl">
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
-        <Link href="/ingetdiwa" className="flex items-center gap-2.5">
+        <Link href="/ingetdiwa" className="flex min-h-11 items-center gap-2.5">
           <Image
             src="/ingetdiwa-icon.png"
             alt=""
@@ -29,14 +29,14 @@ export default function SiteNav() {
             <a
               key={link.href}
               href={link.href}
-              className="text-[13px] text-white/60 transition-colors hover:text-white"
+              className="inline-flex min-h-11 items-center text-[13px] text-white/60 transition-colors hover:text-white"
             >
               {link.label}
             </a>
           ))}
           <a
             href={MAIN_SITE_URL}
-            className="text-[13px] text-white/60 transition-colors hover:text-white"
+            className="inline-flex min-h-11 items-center text-[13px] text-white/60 transition-colors hover:text-white"
           >
             hilmi.work
           </a>
@@ -44,7 +44,7 @@ export default function SiteNav() {
 
         <Link
           href="/ingetdiwa/langganan"
-          className="rounded-md bg-white px-4 py-2 text-[13px] font-semibold text-black transition-colors hover:bg-brand-cyan"
+          className="inline-flex min-h-11 items-center rounded-md bg-white px-4 py-2 text-[13px] font-semibold text-black transition-colors hover:bg-brand-cyan"
         >
           Berlangganan
         </Link>
