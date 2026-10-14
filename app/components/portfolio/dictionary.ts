@@ -30,6 +30,12 @@ export type ExperienceCopy = {
   status?: string;
   cta?: string;
   href?: string;
+  /**
+   * Logo proyek, dipakai kartu yang punya merek sendiri. Kartu tanpa logo tetap
+   * tampil rapi, jadi bidang ini opsional.
+   */
+  logo?: string;
+  logoAlt?: string;
 };
 
 export type Dictionary = {
@@ -55,6 +61,9 @@ export type Dictionary = {
     body: string[];
     photoAlt: string;
   };
+  // Profil di luar situs ini. Ditampilkan sebagai deretan tautan di bagian
+  // Tentang, karena di situlah pengunjung mencari siapa pemilik halaman ini.
+  social: { label: string; href: string }[];
   footer: {
     builtWith: string;
     rights: string;
@@ -68,6 +77,18 @@ export type Dictionary = {
 
 const PRODUCT_HREF = "https://ingetdiwa.hilmi.work";
 const CONTACT_EMAIL = "mhilmirajwandhika@gmail.com";
+// Tautan kartu Gets Hint menuju halaman penjelasan di situs ini sendiri, bukan
+// langsung ke getshint.com. Halaman itu yang bercerita bagaimana sistemnya
+// bekerja, lengkap dengan tombol menuju situs aslinya. Alamatnya ikut bahasa
+// yang sedang dibuka, sama seperti halaman pengujian game.
+const GETSHINT_HREF: Record<Locale, string> = {
+  id: "/getshint",
+  en: "/en/getshint",
+};
+const SOCIAL = {
+  linkedin: "https://www.linkedin.com/in/hilmirajwandhika/",
+  github: "https://github.com/Hlm17",
+};
 
 // Halaman game tester punya alamat sendiri, karena jumlah game dan laporannya
 // akan terus bertambah. Di sana pengunjung memilih kartu game dulu, baru
@@ -98,7 +119,7 @@ export const dictionary: Record<Locale, Dictionary> = {
     experience: {
       eyebrow: "Pengalaman",
       title: "Yang saya kerjakan",
-      lead: "Dua hal yang saya jalani sekarang: membangun dan mengelola perangkat lunak sendiri, serta menguji game dan menulis laporannya secara terstruktur.",
+      lead: "Tiga hal yang saya jalani sekarang: membangun dan mengelola perangkat lunak sendiri, mengisi situs konten dengan penerbitan otomatis, serta menguji game dan menulis laporannya secara terstruktur.",
       items: [
         {
           name: "IngetDiWA",
@@ -111,6 +132,18 @@ export const dictionary: Record<Locale, Dictionary> = {
           href: PRODUCT_HREF,
         },
         {
+          name: "Gets Hint",
+          category: "Situs konten dan otomatisasi penerbitan",
+          description:
+            "Situs konten berbahasa Inggris di WordPress yang saya bangun dan kelola sendiri: petunjuk harian Wordle dan Connections, berita AI, serta panduan game. Penerbitannya berjalan otomatis, mulai dari pemilihan kata kunci, penulisan draf panjang beserta tabel, kotak info, dan tanya jawab, pembuatan gambar unggulan berwatermark, sampai unggah ke WordPress lewat REST API sebagai draf yang saya tinjau sebelum terbit.",
+          meta: "Proyek solo, penerbitan otomatis",
+          status: "Berjalan",
+          cta: "Lihat cara kerjanya",
+          href: GETSHINT_HREF.id,
+          logo: "/assets/getshint/logo.webp",
+          logoAlt: "Logo Gets Hint",
+        },
+        {
           name: "Game Tester",
           category: "Pengujian game dan pelaporan",
           description:
@@ -121,6 +154,11 @@ export const dictionary: Record<Locale, Dictionary> = {
         },
       ],
     },
+    social: [
+      { label: "LinkedIn", href: SOCIAL.linkedin },
+      { label: "GitHub", href: SOCIAL.github },
+      { label: "Email", href: `mailto:${CONTACT_EMAIL}` },
+    ],
     about: {
       eyebrow: "Tentang",
       title: "Tentang saya",
@@ -156,7 +194,7 @@ export const dictionary: Record<Locale, Dictionary> = {
     experience: {
       eyebrow: "Experience",
       title: "What I do",
-      lead: "Two things I work on right now: building and running my own software, and testing games and writing the reports in a structured way.",
+      lead: "Three things I work on right now: building and running my own software, publishing a content site with an automated pipeline, and testing games and writing the reports in a structured way.",
       items: [
         {
           name: "IngetDiWA",
@@ -169,6 +207,18 @@ export const dictionary: Record<Locale, Dictionary> = {
           href: PRODUCT_HREF,
         },
         {
+          name: "Gets Hint",
+          category: "Content site and publishing automation",
+          description:
+            "An English language content site on WordPress that I built and run myself: daily Wordle and Connections hints, AI news, and game guides. Publishing runs automatically, from keyword forecasting, writing long drafts with tables, an info box and a question and answer section, and rendering a watermarked featured image, all the way to uploading through the WordPress REST API as a draft I review before it goes live.",
+          meta: "Solo project, automated publishing",
+          status: "Live",
+          cta: "See how it works",
+          href: GETSHINT_HREF.en,
+          logo: "/assets/getshint/logo.webp",
+          logoAlt: "Gets Hint logo",
+        },
+        {
           name: "Game Tester",
           category: "Game testing and reporting",
           description:
@@ -179,6 +229,11 @@ export const dictionary: Record<Locale, Dictionary> = {
         },
       ],
     },
+    social: [
+      { label: "LinkedIn", href: SOCIAL.linkedin },
+      { label: "GitHub", href: SOCIAL.github },
+      { label: "Email", href: `mailto:${CONTACT_EMAIL}` },
+    ],
     about: {
       eyebrow: "About",
       title: "About me",
