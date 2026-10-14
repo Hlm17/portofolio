@@ -10,7 +10,6 @@ import {
   useVelocity,
   useAnimationFrame
 } from 'motion/react';
-import { gerakDiizinkan } from '../motionPref';
 
 interface VelocityMapping {
   input: [number, number];
@@ -149,20 +148,15 @@ export const ScrollVelocity: React.FC<ScrollVelocityProps> = ({
       return () => pengamat.disconnect();
     }, [containerRef]);
 
-    // Pita ini murni hiasan, jadi pengunjung yang meminta gerak minimum tidak
-    // perlu melihatnya berjalan sama sekali — sama seperti Aurora, ClickSpark,
-    // HeroCard, dan SmoothScroll yang sudah memeriksa setelan itu. Nilainya
-    // dibaca setelah komponen terpasang supaya render pertama di server dan di
-    // peramban tetap sama; bagi yang mengizinkan gerak, pitanya menyala dalam
-    // satu frame sehingga tidak ada yang terlihat berbeda.
-    const [jalan, setJalan] = useState(false);
-    useEffect(() => {
-      setJalan(gerakDiizinkan());
-    }, []);
-
+    // Pita ini sengaja TIDAK memeriksa setelan gerak minimum pengunjung, dan itu
+    // keputusan pemilik proyek, bukan kelalaian. Aurora, ClickSpark, HeroCard,
+    // dan SmoothScroll tetap patuh pada setelan itu; hanya pita ini yang tetap
+    // berjalan bagi semua orang, karena pemiliknya ingin tampilannya seperti
+    // semula: pelan saat halaman diam, makin cepat saat digulir. Jangan
+    // menambahkan pemeriksaan gerak di sini tanpa bertanya lebih dulu.
     const directionFactor = useRef<number>(1);
     useAnimationFrame((t, delta) => {
-      if (!terlihat || !jalan) return;
+      if (!terlihat) return;
 
       let moveBy = directionFactor.current * baseVelocity * (delta / 1000);
 
