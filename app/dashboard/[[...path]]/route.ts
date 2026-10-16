@@ -20,9 +20,12 @@ import { NextResponse } from "next/server";
  * Yang sengaja dibatasi:
  *   - Tujuan selalu `https://wabot.mhr.web.id/dashboard…`; tidak ada parameter
  *     yang bisa mengarahkan proksi ini ke alamat lain.
- *   - Hanya metode GET (dan HEAD). Tidak ada jalur tulis.
+ *   - Metode GET dan HEAD untuk seluruh halaman, ditambah POST khusus ke
+ *     `/dashboard/admin/aksi` (konsol pemulihan — lihat JALUR_TULIS).
  *   - Hanya beberapa header balasan yang diteruskan apa adanya. `WWW-Authenticate`
- *     wajib ikut, karena itulah yang memunculkan kotak sandi peramban.
+ *     wajib ikut, karena itulah yang memunculkan kotak sandi peramban, dan
+ *     `Location` sama pentingnya: tanpanya, jawaban 303 dari konsol tidak sampai
+ *     ke peramban dan halaman hasilnya tidak pernah muncul.
  *
  * `WABOT_DASHBOARD_URL` boleh diisi di Vercel bila kelak hostname tunnel berganti.
  * Alamat bawaan sengaja ditulis utuh supaya halaman ini tetap bekerja tanpa env.
@@ -50,7 +53,28 @@ const HEADER_DITERUSKAN = [
   "referrer-policy", // no-referrer: alamat dasbor tidak menyeberang ke tautan luar
   "x-content-type-options",
   "content-security-policy", // default-src 'none' dari server bot
+  "location", // pengalihan 303 konsol (POST → GET) yang harus sampai ke peramban
 ];
+
+/**
+ * Satu-satunya jalur TULIS yang boleh menyeberang lewat proksi ini: konsol
+ * pemulihan di `features/admin/dasborAdmin.js` (repo WAbot). Halaman dasbor
+ * pemantau sendiri tetap baca-saja.
+ *
+ * Kenapa jalur ini harus ada: seluruh tombol konsol bekerja dengan pola
+ * POST-redirect-GET. Tanpa dukungan POST, halaman konsolnya tetap terbuka lewat
+ * `ingetdiwa.hilmi.work/dashboard/admin` tetapi tombol-tombolnya tidak melakukan
+ * apa pun — proksi diam-diam mengubah POST menjadi GET, dan pemilik hanya melihat
+ * halaman yang sama seolah tidak terjadi apa-apa.
+ *
+ * Pengaman CSRF-nya tidak hilang karena itu: setiap formulir konsol membawa token
+ * HMAC yang hanya bisa dibaca dari halaman yang sudah lolos kotak sandi, dan tidak
+ * ada satu pun halaman lain yang bisa membacanya (halaman itu tidak melayani CORS).
+ */
+const JALUR_TULIS = new Set(["admin/aksi"]);
+
+/** Batas isi formulir yang diteruskan (kolom terpanjang di konsol hanya 200 huruf). */
+const BATAS_ISI = 8 * 1024;
 
 /** Halaman sederhana saat server bot tidak terjangkau. */
 function halamanGagal(pesan: string) {
@@ -89,6 +113,18 @@ function halamanGagal(pesan: string) {
 async function teruskan(request: Request, bagian: string[]) {
   const jalur = bagian.length ? `/dashboard/${bagian.map(encodeURIComponent).join("/")}` : "/dashboard";
   const tujuan = `${ASAL}${jalur}${new URL(request.url).search}`;
+  const bolehMenulis = JALUR_TULIS.has(bagian.join("/"));
+
+  // POST ke jalur lain ditolak TERANG-TERANGAN, bukan diam-diam diubah menjadi GET:
+  // pengubahan diam itulah yang membuat tombol konsol tampak "tidak melakukan apa pun".
+  if (request.method === "POST" && !bolehMenulis) {
+    return new NextResponse("Metode tidak diizinkan di jalur ini", {
+      status: 405,
+      headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" },
+    });
+  }
+
+  const menulis = request.method === "POST";
 
   // Hanya header yang menentukan jawaban dasbor yang dititipkan. Header lain
   // (cookie, referer, dan seterusnya) sengaja tidak diteruskan: dasbor tidak
@@ -99,11 +135,27 @@ async function teruskan(request: Request, bagian: string[]) {
   const accept = request.headers.get("accept");
   if (accept) masuk.set("accept", accept);
 
+  // `Origin` sengaja TIDAK diteruskan: yang dilihat server bot adalah hostname
+  // tunnel (`wabot.mhr.web.id`), bukan domain situs, sehingga penjaga asal di sana
+  // justru akan menolak setiap tombol yang sah. Di jalur ini penjaganya adalah
+  // token CSRF di dalam formulir (lihat JALUR_TULIS).
+  const jenisIsi = request.headers.get("content-type");
+  if (menulis && jenisIsi) masuk.set("content-type", jenisIsi);
+
+  const isi = menulis ? await request.text() : undefined;
+  if (menulis && isi && isi.length > BATAS_ISI) {
+    return new NextResponse("Isi formulir terlalu besar", {
+      status: 413,
+      headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" },
+    });
+  }
+
   let balasan: Response;
   try {
     balasan = await fetch(tujuan, {
-      method: request.method === "HEAD" ? "HEAD" : "GET",
+      method: menulis ? "POST" : request.method === "HEAD" ? "HEAD" : "GET",
       headers: masuk,
+      body: isi,
       cache: "no-store",
       redirect: "manual",
     });
@@ -131,5 +183,13 @@ export async function GET(request: Request, { params }: { params: { path?: strin
 }
 
 export async function HEAD(request: Request, { params }: { params: { path?: string[] } }) {
+  return teruskan(request, params.path ?? []);
+}
+
+/**
+ * Satu-satunya metode tulis: tombol-tombol konsol pemulihan.
+ * Jalur lain ditolak 405 sebelum satu byte pun dikirim ke server bot.
+ */
+export async function POST(request: Request, { params }: { params: { path?: string[] } }) {
   return teruskan(request, params.path ?? []);
 }
